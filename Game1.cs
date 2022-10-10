@@ -9,6 +9,13 @@ namespace SlidingTile_MonoGame
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
+        private Texture2D _playerTexture2D;
+
+        private Vector2 _playerPosition;
+
+        private double _playerSpeed;
+        private float _currChangeValue;
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -18,7 +25,13 @@ namespace SlidingTile_MonoGame
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
+            _playerPosition = new Vector2(540, 260);
+
+            _playerSpeed = 250.0d;
+
+            _graphics.PreferredBackBufferWidth = 1280;
+            _graphics.PreferredBackBufferHeight = 720;
+            _graphics.ApplyChanges();
 
             base.Initialize();
         }
@@ -27,7 +40,7 @@ namespace SlidingTile_MonoGame
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // TODO: use this.Content to load your game content here
+            _playerTexture2D = Content.Load<Texture2D>("sprites/player");
         }
 
         protected override void Update(GameTime gameTime)
@@ -35,7 +48,27 @@ namespace SlidingTile_MonoGame
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // TODO: Add your update logic here
+            _currChangeValue = (float)(_playerSpeed * gameTime.ElapsedGameTime.TotalSeconds);
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Up))
+            {
+                _playerPosition.Y -= _currChangeValue;
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Down))
+            {
+                _playerPosition.Y += _currChangeValue;
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Left))
+            {
+                _playerPosition.X -= _currChangeValue;
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Right))
+            {
+                _playerPosition.X += _currChangeValue;
+            }
 
             base.Update(gameTime);
         }
@@ -44,7 +77,11 @@ namespace SlidingTile_MonoGame
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            // TODO: Add your drawing code here
+            _spriteBatch.Begin();
+
+            _spriteBatch.Draw(_playerTexture2D, _playerPosition, Color.White);
+
+            _spriteBatch.End();
 
             base.Draw(gameTime);
         }
