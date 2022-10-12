@@ -46,7 +46,7 @@ namespace SlidingTile_MonoGame
 
         protected override void Initialize()
         {
-            Window.Title = "Sliding Tile - MonoGame";
+            Window.Title = "Sliding Tile - MonoGame (0.1 - 2022.10.12)";
 
             _levelStart = new Vector2(5, 6);
 
