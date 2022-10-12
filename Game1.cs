@@ -46,6 +46,8 @@ namespace SlidingTile_MonoGame
 
         protected override void Initialize()
         {
+            Window.Title = "Sliding Tile - MonoGame";
+
             _levelStart = new Vector2(5, 6);
 
             _playerPosition = new Vector2(100 * _levelStart.X, 100 * _levelStart.Y);
