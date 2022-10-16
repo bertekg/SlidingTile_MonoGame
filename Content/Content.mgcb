@@ -13,6 +13,13 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin fonts/debugGame.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:fonts/debugGame.spritefont
+
 #begin fonts/digitFloor.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor

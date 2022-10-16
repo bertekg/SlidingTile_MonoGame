@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -35,9 +34,15 @@ namespace SlidingTile_MonoGame
         private Texture2D _floorTileTexture2D;
 
         private SpriteFont _digitFloor;
+        private SpriteFont _debugGame;
 
         List<Cell> _floorTiles;
         Vector2 _levelStart;
+
+        List<MoveCommand> _moveCommands;
+        int _moveCommandsIndes;
+        Vector2 debugMoveCountPosition;
+        Vector2 debugMoveListPosition;
 
         public Game1()
         {
@@ -76,11 +81,16 @@ namespace SlidingTile_MonoGame
             _playerPerformMove = false;
             _playerMoveInital = false;
 
-            _timeMoveMax = 0.5d;
+            _timeMoveMax = 0.3d;
             _timeMoveCurrent = 0.0d;
             _stepDistans = 100.0f;
 
             _moveVerse = new Vector2();
+
+            _moveCommands = new List<MoveCommand>();
+            _moveCommandsIndes = 0;
+            debugMoveCountPosition = new Vector2(20, 680);
+            debugMoveListPosition = new Vector2(900, 20);
 
             _graphics.PreferredBackBufferWidth = 1280;
             _graphics.PreferredBackBufferHeight = 720;
@@ -96,6 +106,7 @@ namespace SlidingTile_MonoGame
             _floorTileTexture2D = Content.Load<Texture2D>("sprites/floorTile");
 
             _digitFloor = Content.Load<SpriteFont>("fonts/digitFloor");
+            _debugGame = Content.Load<SpriteFont>("fonts/debugGame");
         }
 
         protected override void Update(GameTime gameTime)
@@ -175,6 +186,15 @@ namespace SlidingTile_MonoGame
                 _spriteBatch.DrawString(_digitFloor, textInside, finalPosition + vectorTextOffset, colorText);
             }
 
+            _spriteBatch.DrawString(_debugGame, "Player move commands: counts " + _moveCommands.Count.ToString() + ", index " + _moveCommandsIndes.ToString(), debugMoveCountPosition, Color.White);
+            for (int i = 0; i < _moveCommands.Count; i++)
+            {
+                Vector2 verticalOffset = new Vector2(0, 28 * i);
+                Point start = _moveCommands[i].GetStartPoint();
+                Point end = _moveCommands[i].GetEndPoint();
+                _spriteBatch.DrawString(_debugGame, "[" + i.ToString() + "] Start [" + start.X.ToString() + "," + start.Y.ToString() + "], End [" + end.X.ToString() + "," + end.Y.ToString() + "]", debugMoveListPosition + verticalOffset, Color.White);
+            }
+
             _spriteBatch.Draw(_playerTexture2D, _playerPosition, Color.White);
 
             _spriteBatch.End();
@@ -212,6 +232,8 @@ namespace SlidingTile_MonoGame
                     _playerPosition = new Vector2(_playerPosInit.X + (_stepDistans * _moveVerse.X), _playerPosInit.Y + (_stepDistans * _moveVerse.Y));
                     _playerMoveInital = false;
                     _playerPerformMove = false;
+                    _moveCommands.Add(new MoveCommand(_playerVirtualPoint, _playerVirtualPointDestination));
+                    _moveCommandsIndes = _moveCommands.Count - 1;
                     _playerVirtualPoint = _playerVirtualPointDestination;
                 }
             }
