@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
-using static SlidingTile_MonoGame.Game1;
 using System.Xml.Serialization;
 using System.Linq;
 
@@ -38,6 +37,7 @@ namespace SlidingTile_MonoGame
 
         List<Cell> _floorTiles;
         Vector2 _levelStart;
+        Cell _existingCell;
 
         List<MoveCommand> _moveCommands;
         int _moveCommandsIndex;
@@ -55,9 +55,10 @@ namespace SlidingTile_MonoGame
 
         protected override void Initialize()
         {
-            Window.Title = "Sliding Tile - MonoGame (0.1.5 - 2022.10.17)";
+            Window.Title = "Sliding Tile - MonoGame (0.2 - 2022.10.17)";
 
             _floorTiles = new List<Cell>();
+            _existingCell = new Cell();
             XmlDocument xmlDocument = new XmlDocument();
             xmlDocument.Load("LevelBasic/0_Basic_01.xml");
             string xmlString = xmlDocument.OuterXml;
@@ -73,6 +74,10 @@ namespace SlidingTile_MonoGame
                 }
                 read.Close();
             }
+            _existingCell = _floorTiles.Find(pos => pos.PosX == 0 && pos.PosY == 0);
+            _existingCell.Number -= 1;
+            int indexTile = _floorTiles.FindIndex(item => item.PosX == _existingCell.PosX && item.PosY == _existingCell.PosY);
+            _floorTiles[indexTile] = _existingCell;
 
             _levelStart = GetLevelStart();
 
@@ -92,7 +97,7 @@ namespace SlidingTile_MonoGame
             _moveCommands = new List<MoveCommand>();
             _moveCommandsIndex = 0;
             debugMoveCountPosition = new Vector2(20, 680);
-            debugMoveListPosition = new Vector2(900, 20);
+            debugMoveListPosition = new Vector2(780, 20);
             _playerUndoMove = false;
             _playerRedoMove = false;
 
@@ -164,6 +169,7 @@ namespace SlidingTile_MonoGame
 
             for (int i = 0; i < _floorTiles.Count; i++)
             {
+                if (_floorTiles[i].Type == CellType.Normal && _floorTiles[i].Number == 0) continue;
                 Vector2 finalPosition = new Vector2(100*((int)_levelStart.X + _floorTiles[i].PosX), 100 * ((int)_levelStart.Y - _floorTiles[i].PosY));
                 _spriteBatch.Draw(_floorTileTexture2D, finalPosition, Color.White);
                 string textInside = string.Empty;
@@ -211,7 +217,8 @@ namespace SlidingTile_MonoGame
                 {
                     currentIndex = Color.Green;
                 }
-                _spriteBatch.DrawString(_debugGame, "[" + i.ToString() + "] Start [" + start.X.ToString() + "," + start.Y.ToString() + "], End [" + end.X.ToString() + "," + end.Y.ToString() + "]", debugMoveListPosition + verticalOffset, currentIndex);
+                _spriteBatch.DrawString(_debugGame, "[" + i.ToString() + "] Start [" + start.X.ToString() + "," + start.Y.ToString() + "], End [" + end.X.ToString() + 
+                    "," + end.Y.ToString() + "], Cells mod count: " + _moveCommands[i].GetModifiedCellsBefore().Count.ToString(), debugMoveListPosition + verticalOffset, currentIndex);
             }
 
             _spriteBatch.Draw(_playerTexture2D, _playerPosition, Color.White);
@@ -225,13 +232,20 @@ namespace SlidingTile_MonoGame
             if(_playerPerformMove == true && _playerMoveInital == false && _playerUndoMove == false && _playerRedoMove == false)
             {
                 _playerVirtualPointDestination = _playerVirtualPoint + new Point((int)_moveVerse.X, -(int)_moveVerse.Y);
-                bool cellFloorExist = _floorTiles.Any(pos => pos.PosX == _playerVirtualPointDestination.X && pos.PosY == _playerVirtualPointDestination.Y);
-                if (cellFloorExist)
+                _existingCell = _floorTiles.Find(pos => pos.PosX == _playerVirtualPointDestination.X && pos.PosY == _playerVirtualPointDestination.Y);
+                if (_existingCell != null)
                 {
-                    _playerMoveSpeed = _stepDistans / (float)_timeMoveMax;
-                    _timeMoveCurrent = 0.0d;
-                    _playerMoveInital = true;
-                    _playerPosInit = _playerPosition;
+                    if (_existingCell.Number > 0 || _existingCell.Type == CellType.Finish)
+                    {
+                        _playerMoveSpeed = _stepDistans / (float)_timeMoveMax;
+                        _timeMoveCurrent = 0.0d;
+                        _playerMoveInital = true;
+                        _playerPosInit = _playerPosition;
+                    }
+                    else
+                    {
+                        _playerPerformMove = false;
+                    }
                 }
                 else
                 {
@@ -248,7 +262,14 @@ namespace SlidingTile_MonoGame
                     _timeMoveCurrent = 0.0d;
                     _playerMoveInital = true;
                     _playerPosInit = _playerPosition;
-                    _moveVerse = new Vector2(moveCommand.GetStartPoint().X - moveCommand.GetEndPoint().X, -(moveCommand.GetStartPoint().Y - moveCommand.GetEndPoint().Y)); 
+                    _moveVerse = new Vector2(moveCommand.GetStartPoint().X - moveCommand.GetEndPoint().X, -(moveCommand.GetStartPoint().Y - moveCommand.GetEndPoint().Y));
+
+                    List<Cell> cells = _moveCommands[_moveCommandsIndex - 1].GetModifiedCellsBefore();
+                    foreach (Cell cell in cells)
+                    {
+                        int indexTile = _floorTiles.FindIndex(item => item.PosX == cell.PosX && item.PosY == cell.PosY);
+                        _floorTiles[indexTile] = cell;
+                    }
                 }
                 else
                 {
@@ -298,7 +319,17 @@ namespace SlidingTile_MonoGame
                                 _moveCommands.RemoveAt(_moveCommands.Count - 1);
                             }
                         }
-                        _moveCommands.Add(new MoveCommand(_playerVirtualPoint, _playerVirtualPointDestination));
+                        List<Cell> modCellsBefore = new List<Cell>();
+                        List<Cell> modCellsAfter = new List<Cell>();
+                        if (_existingCell.Type == CellType.Normal)
+                        {
+                            int indexTile = _floorTiles.FindIndex(item => item.PosX == _existingCell.PosX && item.PosY == _existingCell.PosY);
+                            modCellsBefore.Add(new Cell() { Number = _existingCell.Number, PosX = _existingCell.PosX, PosY = _existingCell.PosY, Type = _existingCell.Type});
+                            _existingCell.Number -= 1;
+                            _floorTiles[indexTile].Number = _existingCell.Number;
+                            modCellsAfter.Add(new Cell() { Number = _existingCell.Number, PosX = _existingCell.PosX, PosY = _existingCell.PosY, Type = _existingCell.Type });
+                        }
+                        _moveCommands.Add(new MoveCommand(_playerVirtualPoint, _playerVirtualPointDestination, modCellsBefore, modCellsAfter));
                         _moveCommandsIndex = _moveCommands.Count;
                         
                     }
@@ -308,7 +339,13 @@ namespace SlidingTile_MonoGame
                         _playerUndoMove = false;
                     }
                     if (_playerRedoMove == true)
-                    {
+                    {   
+                        List<Cell> cells = _moveCommands[_moveCommandsIndex].GetModifiedCellsAfter();
+                        foreach (Cell cell in cells)
+                        {
+                            int indexTile = _floorTiles.FindIndex(item => item.PosX == cell.PosX && item.PosY == cell.PosY);
+                            _floorTiles[indexTile] = cell;
+                        }
                         _moveCommandsIndex += 1;
                         _playerRedoMove = false;
                     }
