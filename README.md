@@ -5,7 +5,10 @@ Logic game where you should clear all tiles before reaching the finish of level.
 ## Screenshots
 
 ### 1. At start
-![alt text](screenshots/0.1/1AtStart.png)
+![alt text](screenshots/0.1.5/1AtStart.png)
 
-### 2. In random place (outside)
-![alt text](screenshots/0.1/2InRandomPlace.png)
+### 2. In random place
+![alt text](screenshots/0.1.5/2InRandomPlace.png)
+
+### 3. Undo move commands
+![alt text](screenshots/0.1.5/3UndoMoveCommand.png)

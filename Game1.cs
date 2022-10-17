@@ -40,9 +40,11 @@ namespace SlidingTile_MonoGame
         Vector2 _levelStart;
 
         List<MoveCommand> _moveCommands;
-        int _moveCommandsIndes;
+        int _moveCommandsIndex;
         Vector2 debugMoveCountPosition;
         Vector2 debugMoveListPosition;
+        bool _playerUndoMove;
+        bool _playerRedoMove;
 
         public Game1()
         {
@@ -53,7 +55,7 @@ namespace SlidingTile_MonoGame
 
         protected override void Initialize()
         {
-            Window.Title = "Sliding Tile - MonoGame (0.1.1 - 2022.10.13)";
+            Window.Title = "Sliding Tile - MonoGame (0.1.5 - 2022.10.17)";
 
             _floorTiles = new List<Cell>();
             XmlDocument xmlDocument = new XmlDocument();
@@ -88,9 +90,11 @@ namespace SlidingTile_MonoGame
             _moveVerse = new Vector2();
 
             _moveCommands = new List<MoveCommand>();
-            _moveCommandsIndes = 0;
+            _moveCommandsIndex = 0;
             debugMoveCountPosition = new Vector2(20, 680);
             debugMoveListPosition = new Vector2(900, 20);
+            _playerUndoMove = false;
+            _playerRedoMove = false;
 
             _graphics.PreferredBackBufferWidth = 1280;
             _graphics.PreferredBackBufferHeight = 720;
@@ -114,27 +118,37 @@ namespace SlidingTile_MonoGame
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Up) && _playerPerformMove == false)
+            if (Keyboard.GetState().IsKeyDown(Keys.Up) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
             {
                 _moveVerse = new Vector2(0.0f, -1.0f);
                 _playerPerformMove = true;
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Down) && _playerPerformMove == false)
+            if (Keyboard.GetState().IsKeyDown(Keys.Down) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
             {
                 _moveVerse = new Vector2(0.0f, 1.0f);
                 _playerPerformMove = true;
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Left) && _playerPerformMove == false)
+            if (Keyboard.GetState().IsKeyDown(Keys.Left) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
             {
                 _moveVerse = new Vector2(-1.0f, 0.0f);
                 _playerPerformMove = true;
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Right) && _playerPerformMove == false)
+            if (Keyboard.GetState().IsKeyDown(Keys.Right) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
             {
                 _moveVerse = new Vector2(1.0f, 0.0f);
+                _playerPerformMove = true;
+            }
+            if(Keyboard.GetState().IsKeyDown(Keys.U) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
+            {
+                _playerUndoMove = true;
+                _playerPerformMove = true;
+            }
+            if(Keyboard.GetState().IsKeyDown(Keys.R) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
+            {
+                _playerRedoMove = true;
                 _playerPerformMove = true;
             }
             MovePlayer(gameTime.ElapsedGameTime.TotalSeconds);
@@ -186,13 +200,18 @@ namespace SlidingTile_MonoGame
                 _spriteBatch.DrawString(_digitFloor, textInside, finalPosition + vectorTextOffset, colorText);
             }
 
-            _spriteBatch.DrawString(_debugGame, "Player move commands: counts " + _moveCommands.Count.ToString() + ", index " + _moveCommandsIndes.ToString(), debugMoveCountPosition, Color.White);
+            _spriteBatch.DrawString(_debugGame, "Player move commands: counts " + _moveCommands.Count.ToString() + ", index " + _moveCommandsIndex.ToString(), debugMoveCountPosition, Color.White);
             for (int i = 0; i < _moveCommands.Count; i++)
             {
                 Vector2 verticalOffset = new Vector2(0, 28 * i);
                 Point start = _moveCommands[i].GetStartPoint();
                 Point end = _moveCommands[i].GetEndPoint();
-                _spriteBatch.DrawString(_debugGame, "[" + i.ToString() + "] Start [" + start.X.ToString() + "," + start.Y.ToString() + "], End [" + end.X.ToString() + "," + end.Y.ToString() + "]", debugMoveListPosition + verticalOffset, Color.White);
+                Color currentIndex = Color.White;
+                if (i == _moveCommandsIndex - 1)
+                {
+                    currentIndex = Color.Green;
+                }
+                _spriteBatch.DrawString(_debugGame, "[" + i.ToString() + "] Start [" + start.X.ToString() + "," + start.Y.ToString() + "], End [" + end.X.ToString() + "," + end.Y.ToString() + "]", debugMoveListPosition + verticalOffset, currentIndex);
             }
 
             _spriteBatch.Draw(_playerTexture2D, _playerPosition, Color.White);
@@ -203,7 +222,7 @@ namespace SlidingTile_MonoGame
         }
         private void MovePlayer(double totalSecounds)
         {
-            if(_playerPerformMove == true & _playerMoveInital == false)
+            if(_playerPerformMove == true && _playerMoveInital == false && _playerUndoMove == false && _playerRedoMove == false)
             {
                 _playerVirtualPointDestination = _playerVirtualPoint + new Point((int)_moveVerse.X, -(int)_moveVerse.Y);
                 bool cellFloorExist = _floorTiles.Any(pos => pos.PosX == _playerVirtualPointDestination.X && pos.PosY == _playerVirtualPointDestination.Y);
@@ -219,6 +238,42 @@ namespace SlidingTile_MonoGame
                     _playerPerformMove = false;
                 }
             }
+            if(_playerPerformMove == true && _playerMoveInital == false && _playerUndoMove == true && _playerRedoMove == false)
+            {
+                if (_moveCommandsIndex > 0)
+                {
+                    MoveCommand moveCommand = _moveCommands[_moveCommandsIndex - 1];
+                    _playerVirtualPointDestination = moveCommand.GetStartPoint();
+                    _playerMoveSpeed = _stepDistans / (float)_timeMoveMax;
+                    _timeMoveCurrent = 0.0d;
+                    _playerMoveInital = true;
+                    _playerPosInit = _playerPosition;
+                    _moveVerse = new Vector2(moveCommand.GetStartPoint().X - moveCommand.GetEndPoint().X, -(moveCommand.GetStartPoint().Y - moveCommand.GetEndPoint().Y)); 
+                }
+                else
+                {
+                    _playerPerformMove = false;
+                    _playerUndoMove = false;
+                }
+            }
+            if (_playerPerformMove == true && _playerMoveInital == false && _playerUndoMove == false && _playerRedoMove == true)
+            {
+                if (_moveCommandsIndex < _moveCommands.Count)
+                {
+                    MoveCommand moveCommand = _moveCommands[_moveCommandsIndex];
+                    _playerVirtualPointDestination = moveCommand.GetEndPoint();
+                    _playerMoveSpeed = _stepDistans / (float)_timeMoveMax;
+                    _timeMoveCurrent = 0.0d;
+                    _playerMoveInital = true;
+                    _playerPosInit = _playerPosition;
+                    _moveVerse = new Vector2(moveCommand.GetEndPoint().X - moveCommand.GetStartPoint().X, -(moveCommand.GetEndPoint().Y - moveCommand.GetStartPoint().Y));
+                }
+                else
+                {
+                    _playerPerformMove = false;
+                    _playerRedoMove = false;
+                }
+            }
             _currChangeValue = (float)(_playerMoveSpeed * totalSecounds);
             if (_playerPerformMove == true & _playerMoveInital == true)
             {
@@ -232,8 +287,31 @@ namespace SlidingTile_MonoGame
                     _playerPosition = new Vector2(_playerPosInit.X + (_stepDistans * _moveVerse.X), _playerPosInit.Y + (_stepDistans * _moveVerse.Y));
                     _playerMoveInital = false;
                     _playerPerformMove = false;
-                    _moveCommands.Add(new MoveCommand(_playerVirtualPoint, _playerVirtualPointDestination));
-                    _moveCommandsIndes = _moveCommands.Count - 1;
+
+                    if (_playerUndoMove == false && _playerRedoMove == false)
+                    {
+                        if (_moveCommandsIndex < _moveCommands.Count)
+                        {
+                            int howManyDelete = _moveCommands.Count - _moveCommandsIndex;
+                            for (int i = 0; i < howManyDelete; i++)
+                            {
+                                _moveCommands.RemoveAt(_moveCommands.Count - 1);
+                            }
+                        }
+                        _moveCommands.Add(new MoveCommand(_playerVirtualPoint, _playerVirtualPointDestination));
+                        _moveCommandsIndex = _moveCommands.Count;
+                        
+                    }
+                    if (_playerUndoMove == true)
+                    {
+                        _moveCommandsIndex -= 1;
+                        _playerUndoMove = false;
+                    }
+                    if (_playerRedoMove == true)
+                    {
+                        _moveCommandsIndex += 1;
+                        _playerRedoMove = false;
+                    }
                     _playerVirtualPoint = _playerVirtualPointDestination;
                 }
             }
