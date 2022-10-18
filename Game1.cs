@@ -64,7 +64,7 @@ namespace SlidingTile_MonoGame
 
         protected override void Initialize()
         {
-            Window.Title = "Sliding Tile - MonoGame (0.2.2 - 2022.10.18)";
+            Window.Title = "Sliding Tile - MonoGame (0.2.3 - 2022.10.18)";
 
             StartNewGame();
 
@@ -95,7 +95,7 @@ namespace SlidingTile_MonoGame
                 (_graphics.PreferredBackBufferHeight - _endGamePanelTexture2D.Height) / 2);
             _endGamePanelGameOverPosition = _endGamePanelPosition + new Vector2(50, 20);
             _endGamePanelFinishStatus = _endGamePanelPosition + new Vector2(60, 120);
-            _endGamePanelSpaceToStartAgain = _endGamePanelPosition + new Vector2(110, 220);
+            _endGamePanelSpaceToStartAgain = _endGamePanelPosition + new Vector2(80, 220);
 
 
             _digitFloor = Content.Load<SpriteFont>("fonts/digitFloor");
@@ -109,35 +109,41 @@ namespace SlidingTile_MonoGame
                 Exit();
             if (_isDuringGame)
             {
-                if (Keyboard.GetState().IsKeyDown(Keys.Up) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
+                if ((GamePad.GetState(PlayerIndex.One).DPad.Up == ButtonState.Pressed ||  Keyboard.GetState().IsKeyDown(Keys.Up))
+                    && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
                 {
                     _moveVerse = new Vector2(0.0f, -1.0f);
                     _playerPerformMove = true;
                 }
 
-                if (Keyboard.GetState().IsKeyDown(Keys.Down) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
+                if ((GamePad.GetState(PlayerIndex.One).DPad.Down == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Down))
+                    && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
                 {
                     _moveVerse = new Vector2(0.0f, 1.0f);
                     _playerPerformMove = true;
                 }
 
-                if (Keyboard.GetState().IsKeyDown(Keys.Left) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
+                if ((GamePad.GetState(PlayerIndex.One).DPad.Left == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Left))
+                    && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
                 {
                     _moveVerse = new Vector2(-1.0f, 0.0f);
                     _playerPerformMove = true;
                 }
 
-                if (Keyboard.GetState().IsKeyDown(Keys.Right) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
+                if ((GamePad.GetState(PlayerIndex.One).DPad.Right == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Right))
+                    && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
                 {
                     _moveVerse = new Vector2(1.0f, 0.0f);
                     _playerPerformMove = true;
                 }
-                if (Keyboard.GetState().IsKeyDown(Keys.U) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
+                if ((GamePad.GetState(PlayerIndex.One).Buttons.LeftShoulder == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.U))
+                    && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
                 {
                     _playerUndoMove = true;
                     _playerPerformMove = true;
                 }
-                if (Keyboard.GetState().IsKeyDown(Keys.R) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
+                if ((GamePad.GetState(PlayerIndex.One).Buttons.RightShoulder == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.R))
+                    && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
                 {
                     _playerRedoMove = true;
                     _playerPerformMove = true;
@@ -146,7 +152,7 @@ namespace SlidingTile_MonoGame
             }
             else
             {
-                if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                if (GamePad.GetState(PlayerIndex.One).Buttons.Start == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Space))
                 {
                     StartNewGame();
                 }
@@ -228,7 +234,7 @@ namespace SlidingTile_MonoGame
                 {
                     _spriteBatch.DrawString(_gameEnd, "You LOSE :(", _endGamePanelFinishStatus, Color.Red);
                 }
-                _spriteBatch.DrawString(_debugGame, "[Space] - Restart game", _endGamePanelSpaceToStartAgain, Color.White);
+                _spriteBatch.DrawString(_debugGame, "[Space, START] - Restart game", _endGamePanelSpaceToStartAgain, Color.White);
 
             }
 
