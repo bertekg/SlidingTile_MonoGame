@@ -27,6 +27,25 @@
 /processorParam:TextureFormat=Compressed
 /build:fonts/digitFloor.spritefont
 
+#begin fonts/gameEnd.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:fonts/gameEnd.spritefont
+
+#begin sprites/endGamePanel.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:sprites/endGamePanel.png
+
 #begin sprites/floorTile.png
 /importer:TextureImporter
 /processor:TextureProcessor

@@ -23,6 +23,7 @@ namespace SlidingTile_MonoGame
 
         private float _currChangeValue;
 
+        private bool _isDuringGame;
         private bool _playerPerformMove;
         private bool _playerMoveInital;
         private float _playerMoveSpeed;
@@ -34,6 +35,7 @@ namespace SlidingTile_MonoGame
 
         private SpriteFont _digitFloor;
         private SpriteFont _debugGame;
+        private SpriteFont _gameEnd;
 
         List<Cell> _floorTiles;
         Vector2 _levelStart;
@@ -46,6 +48,12 @@ namespace SlidingTile_MonoGame
         bool _playerUndoMove;
         bool _playerRedoMove;
 
+        bool _gameFinishSuccesfull;
+        private Texture2D _endGamePanelTexture2D;
+        private Vector2 _endGamePanelPosition;
+        private Vector2 _endGamePanelGameOverPosition;
+        private Vector2 _endGamePanelFinishStatus;
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -55,7 +63,7 @@ namespace SlidingTile_MonoGame
 
         protected override void Initialize()
         {
-            Window.Title = "Sliding Tile - MonoGame (0.2 - 2022.10.17)";
+            Window.Title = "Sliding Tile - MonoGame (0.2.1 - 2022.10.18)";
 
             _floorTiles = new List<Cell>();
             _existingCell = new Cell();
@@ -85,6 +93,7 @@ namespace SlidingTile_MonoGame
             _playerVirtualPoint = new Point(0, 0);
             _playerVirtualPointDestination = new Point(0, 0);
 
+            _isDuringGame = true;
             _playerPerformMove = false;
             _playerMoveInital = false;
 
@@ -113,50 +122,62 @@ namespace SlidingTile_MonoGame
 
             _playerTexture2D = Content.Load<Texture2D>("sprites/player");
             _floorTileTexture2D = Content.Load<Texture2D>("sprites/floorTile");
+            _endGamePanelTexture2D = Content.Load<Texture2D>("sprites/endGamePanel");
+            _endGamePanelPosition = new Vector2(
+                (_graphics.PreferredBackBufferWidth - _endGamePanelTexture2D.Width) / 2,
+                (_graphics.PreferredBackBufferHeight - _endGamePanelTexture2D.Height) / 2);
+            _endGamePanelGameOverPosition = _endGamePanelPosition + new Vector2(50,
+                (((_endGamePanelTexture2D.Height / 2) - 48) / 2));
+            _endGamePanelFinishStatus = _endGamePanelPosition + new Vector2(50, 
+                (_endGamePanelTexture2D.Height / 2) + (((_endGamePanelTexture2D.Height / 2) - 48)/2));
+
 
             _digitFloor = Content.Load<SpriteFont>("fonts/digitFloor");
             _debugGame = Content.Load<SpriteFont>("fonts/debugGame");
+            _gameEnd = Content.Load<SpriteFont>("fonts/gameEnd");
         }
 
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+            if (_isDuringGame)
+            {
+                if (Keyboard.GetState().IsKeyDown(Keys.Up) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
+                {
+                    _moveVerse = new Vector2(0.0f, -1.0f);
+                    _playerPerformMove = true;
+                }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Up) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
-            {
-                _moveVerse = new Vector2(0.0f, -1.0f);
-                _playerPerformMove = true;
-            }
+                if (Keyboard.GetState().IsKeyDown(Keys.Down) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
+                {
+                    _moveVerse = new Vector2(0.0f, 1.0f);
+                    _playerPerformMove = true;
+                }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Down) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
-            {
-                _moveVerse = new Vector2(0.0f, 1.0f);
-                _playerPerformMove = true;
-            }
+                if (Keyboard.GetState().IsKeyDown(Keys.Left) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
+                {
+                    _moveVerse = new Vector2(-1.0f, 0.0f);
+                    _playerPerformMove = true;
+                }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Left) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
-            {
-                _moveVerse = new Vector2(-1.0f, 0.0f);
-                _playerPerformMove = true;
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.Right) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
-            {
-                _moveVerse = new Vector2(1.0f, 0.0f);
-                _playerPerformMove = true;
-            }
-            if(Keyboard.GetState().IsKeyDown(Keys.U) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
-            {
-                _playerUndoMove = true;
-                _playerPerformMove = true;
-            }
-            if(Keyboard.GetState().IsKeyDown(Keys.R) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
-            {
-                _playerRedoMove = true;
-                _playerPerformMove = true;
-            }
-            MovePlayer(gameTime.ElapsedGameTime.TotalSeconds);
+                if (Keyboard.GetState().IsKeyDown(Keys.Right) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
+                {
+                    _moveVerse = new Vector2(1.0f, 0.0f);
+                    _playerPerformMove = true;
+                }
+                if (Keyboard.GetState().IsKeyDown(Keys.U) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
+                {
+                    _playerUndoMove = true;
+                    _playerPerformMove = true;
+                }
+                if (Keyboard.GetState().IsKeyDown(Keys.R) && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
+                {
+                    _playerRedoMove = true;
+                    _playerPerformMove = true;
+                }
+                MovePlayer(gameTime.ElapsedGameTime.TotalSeconds);
+            }            
 
             base.Update(gameTime);
         }
@@ -222,6 +243,20 @@ namespace SlidingTile_MonoGame
             }
 
             _spriteBatch.Draw(_playerTexture2D, _playerPosition, Color.White);
+
+            if (_isDuringGame == false)
+            {
+                _spriteBatch.Draw(_endGamePanelTexture2D, _endGamePanelPosition, Color.White);
+                _spriteBatch.DrawString(_gameEnd, "Game Over!!!", _endGamePanelGameOverPosition, Color.White);
+                if (_gameFinishSuccesfull)
+                {
+                    _spriteBatch.DrawString(_gameEnd, "You WIN :)", _endGamePanelFinishStatus, Color.Green);
+                }
+                else
+                {
+                    _spriteBatch.DrawString(_gameEnd, "You LOSE :(", _endGamePanelFinishStatus, Color.Red);
+                }
+            }
 
             _spriteBatch.End();
 
@@ -328,6 +363,19 @@ namespace SlidingTile_MonoGame
                             _existingCell.Number -= 1;
                             _floorTiles[indexTile].Number = _existingCell.Number;
                             modCellsAfter.Add(new Cell() { Number = _existingCell.Number, PosX = _existingCell.PosX, PosY = _existingCell.PosY, Type = _existingCell.Type });
+                        }
+                        else if(_existingCell.Type == CellType.Finish)
+                        {
+                            bool answere = true;
+                            foreach (Cell tile in _floorTiles)
+                            {
+                                if (tile.Type == CellType.Normal && tile.Number != 0)
+                                {
+                                    answere = false;
+                                }
+                            }
+                            _isDuringGame = false;
+                            _gameFinishSuccesfull = answere;
                         }
                         _moveCommands.Add(new MoveCommand(_playerVirtualPoint, _playerVirtualPointDestination, modCellsBefore, modCellsAfter));
                         _moveCommandsIndex = _moveCommands.Count;
