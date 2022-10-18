@@ -53,6 +53,7 @@ namespace SlidingTile_MonoGame
         private Vector2 _endGamePanelPosition;
         private Vector2 _endGamePanelGameOverPosition;
         private Vector2 _endGamePanelFinishStatus;
+        private Vector2 _endGamePanelSpaceToStartAgain;
 
         public Game1()
         {
@@ -63,39 +64,9 @@ namespace SlidingTile_MonoGame
 
         protected override void Initialize()
         {
-            Window.Title = "Sliding Tile - MonoGame (0.2.1 - 2022.10.18)";
+            Window.Title = "Sliding Tile - MonoGame (0.2.2 - 2022.10.18)";
 
-            _floorTiles = new List<Cell>();
-            _existingCell = new Cell();
-            XmlDocument xmlDocument = new XmlDocument();
-            xmlDocument.Load("LevelBasic/0_Basic_01.xml");
-            string xmlString = xmlDocument.OuterXml;
-            using (StringReader read = new StringReader(xmlString))
-            {
-                Type outType = typeof(List<Cell>);
-
-                XmlSerializer serializer = new XmlSerializer(outType);
-                using (XmlReader reader = new XmlTextReader(read))
-                {
-                    _floorTiles = (List<Cell>)serializer.Deserialize(reader);
-                    reader.Close();
-                }
-                read.Close();
-            }
-            _existingCell = _floorTiles.Find(pos => pos.PosX == 0 && pos.PosY == 0);
-            _existingCell.Number -= 1;
-            int indexTile = _floorTiles.FindIndex(item => item.PosX == _existingCell.PosX && item.PosY == _existingCell.PosY);
-            _floorTiles[indexTile] = _existingCell;
-
-            _levelStart = GetLevelStart();
-
-            _playerPosition = new Vector2(100 * _levelStart.X, 100 * _levelStart.Y);
-            _playerVirtualPoint = new Point(0, 0);
-            _playerVirtualPointDestination = new Point(0, 0);
-
-            _isDuringGame = true;
-            _playerPerformMove = false;
-            _playerMoveInital = false;
+            StartNewGame();
 
             _timeMoveMax = 0.3d;
             _timeMoveCurrent = 0.0d;
@@ -103,12 +74,8 @@ namespace SlidingTile_MonoGame
 
             _moveVerse = new Vector2();
 
-            _moveCommands = new List<MoveCommand>();
-            _moveCommandsIndex = 0;
             debugMoveCountPosition = new Vector2(20, 680);
-            debugMoveListPosition = new Vector2(780, 20);
-            _playerUndoMove = false;
-            _playerRedoMove = false;
+            debugMoveListPosition = new Vector2(780, 20);            
 
             _graphics.PreferredBackBufferWidth = 1280;
             _graphics.PreferredBackBufferHeight = 720;
@@ -126,10 +93,9 @@ namespace SlidingTile_MonoGame
             _endGamePanelPosition = new Vector2(
                 (_graphics.PreferredBackBufferWidth - _endGamePanelTexture2D.Width) / 2,
                 (_graphics.PreferredBackBufferHeight - _endGamePanelTexture2D.Height) / 2);
-            _endGamePanelGameOverPosition = _endGamePanelPosition + new Vector2(50,
-                (((_endGamePanelTexture2D.Height / 2) - 48) / 2));
-            _endGamePanelFinishStatus = _endGamePanelPosition + new Vector2(50, 
-                (_endGamePanelTexture2D.Height / 2) + (((_endGamePanelTexture2D.Height / 2) - 48)/2));
+            _endGamePanelGameOverPosition = _endGamePanelPosition + new Vector2(50, 20);
+            _endGamePanelFinishStatus = _endGamePanelPosition + new Vector2(60, 120);
+            _endGamePanelSpaceToStartAgain = _endGamePanelPosition + new Vector2(110, 220);
 
 
             _digitFloor = Content.Load<SpriteFont>("fonts/digitFloor");
@@ -177,8 +143,14 @@ namespace SlidingTile_MonoGame
                     _playerPerformMove = true;
                 }
                 MovePlayer(gameTime.ElapsedGameTime.TotalSeconds);
-            }            
-
+            }
+            else
+            {
+                if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                {
+                    StartNewGame();
+                }
+            }
             base.Update(gameTime);
         }
 
@@ -250,12 +222,14 @@ namespace SlidingTile_MonoGame
                 _spriteBatch.DrawString(_gameEnd, "Game Over!!!", _endGamePanelGameOverPosition, Color.White);
                 if (_gameFinishSuccesfull)
                 {
-                    _spriteBatch.DrawString(_gameEnd, "You WIN :)", _endGamePanelFinishStatus, Color.Green);
+                    _spriteBatch.DrawString(_gameEnd, "You WIN :)", _endGamePanelFinishStatus, Color.GreenYellow);
                 }
                 else
                 {
                     _spriteBatch.DrawString(_gameEnd, "You LOSE :(", _endGamePanelFinishStatus, Color.Red);
                 }
+                _spriteBatch.DrawString(_debugGame, "[Space] - Restart game", _endGamePanelSpaceToStartAgain, Color.White);
+
             }
 
             _spriteBatch.End();
@@ -414,6 +388,46 @@ namespace SlidingTile_MonoGame
             int offestX = -_floorTiles.Min(posX => posX.PosX);
             int offsetY = _floorTiles.Max(posY => posY.PosY);
             return new Vector2(offestX, offsetY);
+        }
+        private void StartNewGame()
+        {
+            _floorTiles = new List<Cell>();
+            _existingCell = new Cell();
+            XmlDocument xmlDocument = new XmlDocument();
+            xmlDocument.Load("LevelBasic/0_Basic_01.xml");
+            string xmlString = xmlDocument.OuterXml;
+            using (StringReader read = new StringReader(xmlString))
+            {
+                Type outType = typeof(List<Cell>);
+
+                XmlSerializer serializer = new XmlSerializer(outType);
+                using (XmlReader reader = new XmlTextReader(read))
+                {
+                    _floorTiles = (List<Cell>)serializer.Deserialize(reader);
+                    reader.Close();
+                }
+                read.Close();
+            }
+            _existingCell = _floorTiles.Find(pos => pos.PosX == 0 && pos.PosY == 0);
+            _existingCell.Number -= 1;
+            int indexTile = _floorTiles.FindIndex(item => item.PosX == _existingCell.PosX && item.PosY == _existingCell.PosY);
+            _floorTiles[indexTile] = _existingCell;
+
+            _levelStart = GetLevelStart();
+
+            _playerPosition = new Vector2(100 * _levelStart.X, 100 * _levelStart.Y);
+            _playerVirtualPoint = new Point(0, 0);
+            _playerVirtualPointDestination = new Point(0, 0);
+
+            _isDuringGame = true;
+            _playerPerformMove = false;
+            _playerMoveInital = false;
+
+            _moveCommands = new List<MoveCommand>();
+            _moveCommandsIndex = 0;
+
+            _playerUndoMove = false;
+            _playerRedoMove = false;
         }
     }
 }

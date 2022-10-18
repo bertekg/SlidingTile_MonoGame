@@ -14,4 +14,4 @@ Logic game where you should clear all tiles before reaching the finish of level.
 ![alt text](screenshots/0.2/3UndoMoveCommand.png)
 
 ### 4. Win Game
-![alt text](screenshots/0.2.1/4WinGame.png)
+![alt text](screenshots/0.2.2/4WinGame.png)
