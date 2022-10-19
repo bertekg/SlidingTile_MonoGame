@@ -8,14 +8,14 @@ namespace SlidingTile_MonoGame
     {
         private Point startPoint;
         private Point endPoint;
-        private List<Cell> modifiedCellsBefore;
-        private List<Cell> modifiedCellsAfter;
-        public MoveCommand(Point startPoint, Point endPoint, List<Cell> modifiedCellsBefore, List<Cell> modifiedCellsAfter)
+        private List<FloorTile> modifiedFloorTileBefore;
+        private List<FloorTile> modifiedFloorTileAfter;
+        public MoveCommand(Point startPoint, Point endPoint, List<FloorTile> modifiedFloorTileBefore, List<FloorTile> modifiedFloorTileAfter)
         {
             this.startPoint = startPoint;
             this.endPoint = endPoint;
-            this.modifiedCellsBefore = modifiedCellsBefore;
-            this.modifiedCellsAfter = modifiedCellsAfter;
+            this.modifiedFloorTileBefore = modifiedFloorTileBefore;
+            this.modifiedFloorTileAfter = modifiedFloorTileAfter;
         }
         public Point GetStartPoint()
         {
@@ -25,13 +25,13 @@ namespace SlidingTile_MonoGame
         {
             return endPoint;
         }
-        public List<Cell> GetModifiedCellsBefore()
+        public List<FloorTile> GetModifiedFloorTileBefore()
         {
-            return modifiedCellsBefore;
+            return modifiedFloorTileBefore;
         }
-        public List<Cell> GetModifiedCellsAfter()
+        public List<FloorTile> GetModifiedFloorTileAfter()
         {
-            return modifiedCellsAfter;
+            return modifiedFloorTileAfter;
         }
     }
 }

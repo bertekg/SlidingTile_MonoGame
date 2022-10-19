@@ -37,9 +37,9 @@ namespace SlidingTile_MonoGame
         private SpriteFont _debugGame;
         private SpriteFont _gameEnd;
 
-        List<Cell> _floorTiles;
+        List<FloorTile> _floorTiles;
         Vector2 _levelStart;
-        Cell _existingCell;
+        FloorTile _currentFloorTile;
 
         List<MoveCommand> _moveCommands;
         int _moveCommandsIndex;
@@ -64,7 +64,7 @@ namespace SlidingTile_MonoGame
 
         protected override void Initialize()
         {
-            Window.Title = "Sliding Tile - MonoGame (0.2.3 - 2022.10.18)";
+            Window.Title = "Sliding Tile - MonoGame (0.2.4 - 2022.10.18)";
 
             StartNewGame();
 
@@ -75,7 +75,7 @@ namespace SlidingTile_MonoGame
             _moveVerse = new Vector2();
 
             debugMoveCountPosition = new Vector2(20, 680);
-            debugMoveListPosition = new Vector2(780, 20);            
+            debugMoveListPosition = new Vector2(660, 20);            
 
             _graphics.PreferredBackBufferWidth = 1280;
             _graphics.PreferredBackBufferHeight = 720;
@@ -168,7 +168,7 @@ namespace SlidingTile_MonoGame
 
             for (int i = 0; i < _floorTiles.Count; i++)
             {
-                if (_floorTiles[i].Type == CellType.Normal && _floorTiles[i].Number == 0) continue;
+                if (_floorTiles[i].Type == FloorTileType.Normal && _floorTiles[i].Number == 0) continue;
                 Vector2 finalPosition = new Vector2(100*((int)_levelStart.X + _floorTiles[i].PosX), 100 * ((int)_levelStart.Y - _floorTiles[i].PosY));
                 _spriteBatch.Draw(_floorTileTexture2D, finalPosition, Color.White);
                 string textInside = string.Empty;
@@ -176,14 +176,14 @@ namespace SlidingTile_MonoGame
                 Vector2 vectorTextOffset = new Vector2();
                 switch (_floorTiles[i].Type)
                 {
-                    case CellType.None:
+                    case FloorTileType.None:
                         break;
-                    case CellType.Finish:
+                    case FloorTileType.Finish:
                         textInside = "F";
                         colorText = Color.Red;
                         vectorTextOffset = new Vector2(35, 15);
                         break;
-                    case CellType.Normal:
+                    case FloorTileType.Normal:
                         if (_floorTiles[i].PosX != 0 || _floorTiles[i].PosY != 0)
                         {
                             textInside = _floorTiles[i].Number.ToString();
@@ -197,7 +197,7 @@ namespace SlidingTile_MonoGame
                             vectorTextOffset = new Vector2(15, 15);
                         }
                         break;
-                    case CellType.Ice:
+                    case FloorTileType.Ice:
                         break;
                     default:
                         break;
@@ -217,7 +217,7 @@ namespace SlidingTile_MonoGame
                     currentIndex = Color.Green;
                 }
                 _spriteBatch.DrawString(_debugGame, "[" + i.ToString() + "] Start [" + start.X.ToString() + "," + start.Y.ToString() + "], End [" + end.X.ToString() + 
-                    "," + end.Y.ToString() + "], Cells mod count: " + _moveCommands[i].GetModifiedCellsBefore().Count.ToString(), debugMoveListPosition + verticalOffset, currentIndex);
+                    "," + end.Y.ToString() + "], Floor tile mod before count: " + _moveCommands[i].GetModifiedFloorTileBefore().Count.ToString(), debugMoveListPosition + verticalOffset, currentIndex);
             }
 
             _spriteBatch.Draw(_playerTexture2D, _playerPosition, Color.White);
@@ -247,10 +247,10 @@ namespace SlidingTile_MonoGame
             if(_playerPerformMove == true && _playerMoveInital == false && _playerUndoMove == false && _playerRedoMove == false)
             {
                 _playerVirtualPointDestination = _playerVirtualPoint + new Point((int)_moveVerse.X, -(int)_moveVerse.Y);
-                _existingCell = _floorTiles.Find(pos => pos.PosX == _playerVirtualPointDestination.X && pos.PosY == _playerVirtualPointDestination.Y);
-                if (_existingCell != null)
+                _currentFloorTile = _floorTiles.Find(pos => pos.PosX == _playerVirtualPointDestination.X && pos.PosY == _playerVirtualPointDestination.Y);
+                if (_currentFloorTile != null)
                 {
-                    if (_existingCell.Number > 0 || _existingCell.Type == CellType.Finish)
+                    if (_currentFloorTile.Number > 0 || _currentFloorTile.Type == FloorTileType.Finish)
                     {
                         _playerMoveSpeed = _stepDistans / (float)_timeMoveMax;
                         _timeMoveCurrent = 0.0d;
@@ -279,11 +279,11 @@ namespace SlidingTile_MonoGame
                     _playerPosInit = _playerPosition;
                     _moveVerse = new Vector2(moveCommand.GetStartPoint().X - moveCommand.GetEndPoint().X, -(moveCommand.GetStartPoint().Y - moveCommand.GetEndPoint().Y));
 
-                    List<Cell> cells = _moveCommands[_moveCommandsIndex - 1].GetModifiedCellsBefore();
-                    foreach (Cell cell in cells)
+                    List<FloorTile> floorTiles = _moveCommands[_moveCommandsIndex - 1].GetModifiedFloorTileBefore();
+                    foreach (FloorTile floorTile in floorTiles)
                     {
-                        int indexTile = _floorTiles.FindIndex(item => item.PosX == cell.PosX && item.PosY == cell.PosY);
-                        _floorTiles[indexTile] = cell;
+                        int indexTile = _floorTiles.FindIndex(item => item.PosX == floorTile.PosX && item.PosY == floorTile.PosY);
+                        _floorTiles[indexTile] = floorTile;
                     }
                 }
                 else
@@ -334,22 +334,22 @@ namespace SlidingTile_MonoGame
                                 _moveCommands.RemoveAt(_moveCommands.Count - 1);
                             }
                         }
-                        List<Cell> modCellsBefore = new List<Cell>();
-                        List<Cell> modCellsAfter = new List<Cell>();
-                        if (_existingCell.Type == CellType.Normal)
+                        List<FloorTile> modFloorTilesBefore = new List<FloorTile>();
+                        List<FloorTile> modFloorTilesAfter = new List<FloorTile>();
+                        if (_currentFloorTile.Type == FloorTileType.Normal)
                         {
-                            int indexTile = _floorTiles.FindIndex(item => item.PosX == _existingCell.PosX && item.PosY == _existingCell.PosY);
-                            modCellsBefore.Add(new Cell() { Number = _existingCell.Number, PosX = _existingCell.PosX, PosY = _existingCell.PosY, Type = _existingCell.Type});
-                            _existingCell.Number -= 1;
-                            _floorTiles[indexTile].Number = _existingCell.Number;
-                            modCellsAfter.Add(new Cell() { Number = _existingCell.Number, PosX = _existingCell.PosX, PosY = _existingCell.PosY, Type = _existingCell.Type });
+                            int indexTile = _floorTiles.FindIndex(item => item.PosX == _currentFloorTile.PosX && item.PosY == _currentFloorTile.PosY);
+                            modFloorTilesBefore.Add(new FloorTile() { Number = _currentFloorTile.Number, PosX = _currentFloorTile.PosX, PosY = _currentFloorTile.PosY, Type = _currentFloorTile.Type});
+                            _currentFloorTile.Number -= 1;
+                            _floorTiles[indexTile].Number = _currentFloorTile.Number;
+                            modFloorTilesAfter.Add(new FloorTile() { Number = _currentFloorTile.Number, PosX = _currentFloorTile.PosX, PosY = _currentFloorTile.PosY, Type = _currentFloorTile.Type });
                         }
-                        else if(_existingCell.Type == CellType.Finish)
+                        else if(_currentFloorTile.Type == FloorTileType.Finish)
                         {
                             bool answere = true;
-                            foreach (Cell tile in _floorTiles)
+                            foreach (FloorTile tile in _floorTiles)
                             {
-                                if (tile.Type == CellType.Normal && tile.Number != 0)
+                                if (tile.Type == FloorTileType.Normal && tile.Number != 0)
                                 {
                                     answere = false;
                                 }
@@ -357,7 +357,7 @@ namespace SlidingTile_MonoGame
                             _isDuringGame = false;
                             _gameFinishSuccesfull = answere;
                         }
-                        _moveCommands.Add(new MoveCommand(_playerVirtualPoint, _playerVirtualPointDestination, modCellsBefore, modCellsAfter));
+                        _moveCommands.Add(new MoveCommand(_playerVirtualPoint, _playerVirtualPointDestination, modFloorTilesBefore, modFloorTilesAfter));
                         _moveCommandsIndex = _moveCommands.Count;
                         
                     }
@@ -368,11 +368,11 @@ namespace SlidingTile_MonoGame
                     }
                     if (_playerRedoMove == true)
                     {   
-                        List<Cell> cells = _moveCommands[_moveCommandsIndex].GetModifiedCellsAfter();
-                        foreach (Cell cell in cells)
+                        List<FloorTile> floorTiles = _moveCommands[_moveCommandsIndex].GetModifiedFloorTileAfter();
+                        foreach (FloorTile floorTile in floorTiles)
                         {
-                            int indexTile = _floorTiles.FindIndex(item => item.PosX == cell.PosX && item.PosY == cell.PosY);
-                            _floorTiles[indexTile] = cell;
+                            int indexTile = _floorTiles.FindIndex(item => item.PosX == floorTile.PosX && item.PosY == floorTile.PosY);
+                            _floorTiles[indexTile] = floorTile;
                         }
                         _moveCommandsIndex += 1;
                         _playerRedoMove = false;
@@ -380,14 +380,6 @@ namespace SlidingTile_MonoGame
                     _playerVirtualPoint = _playerVirtualPointDestination;
                 }
             }
-        }
-        public enum CellType { None, Finish, Normal, Ice };
-        public class Cell
-        {
-            public int PosX { get; set; }
-            public int PosY { get; set; }
-            public CellType Type { get; set; }
-            public int Number { get; set; }
         }
         private Vector2 GetLevelStart()
         {
@@ -397,27 +389,27 @@ namespace SlidingTile_MonoGame
         }
         private void StartNewGame()
         {
-            _floorTiles = new List<Cell>();
-            _existingCell = new Cell();
+            _floorTiles = new List<FloorTile>();
+            _currentFloorTile = new FloorTile();
             XmlDocument xmlDocument = new XmlDocument();
             xmlDocument.Load("LevelBasic/0_Basic_01.xml");
             string xmlString = xmlDocument.OuterXml;
             using (StringReader read = new StringReader(xmlString))
             {
-                Type outType = typeof(List<Cell>);
+                Type outType = typeof(List<FloorTile>);
 
                 XmlSerializer serializer = new XmlSerializer(outType);
                 using (XmlReader reader = new XmlTextReader(read))
                 {
-                    _floorTiles = (List<Cell>)serializer.Deserialize(reader);
+                    _floorTiles = (List<FloorTile>)serializer.Deserialize(reader);
                     reader.Close();
                 }
                 read.Close();
             }
-            _existingCell = _floorTiles.Find(pos => pos.PosX == 0 && pos.PosY == 0);
-            _existingCell.Number -= 1;
-            int indexTile = _floorTiles.FindIndex(item => item.PosX == _existingCell.PosX && item.PosY == _existingCell.PosY);
-            _floorTiles[indexTile] = _existingCell;
+            _currentFloorTile = _floorTiles.Find(pos => pos.PosX == 0 && pos.PosY == 0);
+            _currentFloorTile.Number -= 1;
+            int indexTile = _floorTiles.FindIndex(item => item.PosX == _currentFloorTile.PosX && item.PosY == _currentFloorTile.PosY);
+            _floorTiles[indexTile] = _currentFloorTile;
 
             _levelStart = GetLevelStart();
 
