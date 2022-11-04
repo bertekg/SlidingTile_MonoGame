@@ -12,6 +12,9 @@ namespace SlidingTile_MonoGame
 {
     public class Game1 : Game
     {
+        public static int ScreenWidth = 1900;
+        public static int ScreenHeight = 980;
+
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
@@ -43,17 +46,19 @@ namespace SlidingTile_MonoGame
 
         List<MoveCommand> _moveCommands;
         int _moveCommandsIndex;
-        Vector2 debugMoveCountPosition;
-        Vector2 debugMoveListPosition;
         bool _playerUndoMove;
         bool _playerRedoMove;
 
         bool _gameFinishSuccesfull;
         private Texture2D _endGamePanelTexture2D;
-        private Vector2 _endGamePanelPosition;
-        private Vector2 _endGamePanelGameOverPosition;
-        private Vector2 _endGamePanelFinishStatus;
-        private Vector2 _endGamePanelSpaceToStartAgain;
+
+        private Vector2 _endGamePanelPosition, _endGamePanelGameOverLoc;
+        private Vector2 _endGamePanelFinishStatusWinLoc, _endGamePanelFinishStatusLoseLoc, _endGamePanelSpaceToStartAgainLoc;
+
+        private Vector2 _debugMoveCountPosition, _debugMoveListPosition;
+
+        private string _endGamePanelFinishGameOver, _endGamePanelFinishStatusLose;
+        private string _endGamePanelFinishStatusWin, _endGamePanelSpaceToStartAgainText;
 
         public Game1()
         {
@@ -61,10 +66,9 @@ namespace SlidingTile_MonoGame
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
         }
-
         protected override void Initialize()
         {
-            Window.Title = "Sliding Tile - MonoGame (0.2.4 - 2022.10.18)";
+            Window.Title = "Sliding Tile - MonoGame (0.3.0 - 2022.11.04)";
 
             StartNewGame();
 
@@ -72,13 +76,16 @@ namespace SlidingTile_MonoGame
             _timeMoveCurrent = 0.0d;
             _stepDistans = 100.0f;
 
+            _endGamePanelFinishGameOver = "Game Over!!!";
+            _endGamePanelFinishStatusWin = "You WIN :)";
+            _endGamePanelFinishStatusLose = "You LOSE :(";
+            _endGamePanelSpaceToStartAgainText = "[Space, START] - Restart game";
+
             _moveVerse = new Vector2();
 
-            debugMoveCountPosition = new Vector2(20, 680);
-            debugMoveListPosition = new Vector2(660, 20);            
-
-            _graphics.PreferredBackBufferWidth = 1280;
-            _graphics.PreferredBackBufferHeight = 720;
+            _graphics.PreferredBackBufferWidth = ScreenWidth;
+            _graphics.PreferredBackBufferHeight = ScreenHeight;
+            _graphics.IsFullScreen = false;
             _graphics.ApplyChanges();
 
             base.Initialize();
@@ -90,59 +97,82 @@ namespace SlidingTile_MonoGame
             _playerTexture2D = Content.Load<Texture2D>("sprites/player");
             _floorTileTexture2D = Content.Load<Texture2D>("sprites/floorTile");
             _endGamePanelTexture2D = Content.Load<Texture2D>("sprites/endGamePanel");
+
             _endGamePanelPosition = new Vector2(
                 (_graphics.PreferredBackBufferWidth - _endGamePanelTexture2D.Width) / 2,
                 (_graphics.PreferredBackBufferHeight - _endGamePanelTexture2D.Height) / 2);
-            _endGamePanelGameOverPosition = _endGamePanelPosition + new Vector2(50, 20);
-            _endGamePanelFinishStatus = _endGamePanelPosition + new Vector2(60, 120);
-            _endGamePanelSpaceToStartAgain = _endGamePanelPosition + new Vector2(80, 220);
-
-
+            
+            
             _digitFloor = Content.Load<SpriteFont>("fonts/digitFloor");
             _debugGame = Content.Load<SpriteFont>("fonts/debugGame");
             _gameEnd = Content.Load<SpriteFont>("fonts/gameEnd");
+
+            _endGamePanelGameOverLoc.X = _endGamePanelPosition.X + (_endGamePanelTexture2D.Width / 2)
+                - (_gameEnd.MeasureString(_endGamePanelFinishGameOver).X / 2);
+            _endGamePanelGameOverLoc.Y = _endGamePanelPosition.Y + 20;
+
+            _endGamePanelFinishStatusWinLoc.X = _endGamePanelPosition.X + (_endGamePanelTexture2D.Width / 2) 
+                - (_gameEnd.MeasureString(_endGamePanelFinishStatusWin).X / 2);
+            _endGamePanelFinishStatusWinLoc.Y = _endGamePanelPosition.Y + 120;
+
+            _endGamePanelFinishStatusLoseLoc.X = _endGamePanelPosition.X + (_endGamePanelTexture2D.Width / 2)
+               - (_gameEnd.MeasureString(_endGamePanelFinishStatusLose).X / 2);
+            _endGamePanelFinishStatusLoseLoc.Y = _endGamePanelPosition.Y + 120;
+
+            _endGamePanelSpaceToStartAgainLoc.X = _endGamePanelPosition.X + (_endGamePanelTexture2D.Width / 2)
+                - (_debugGame.MeasureString(_endGamePanelSpaceToStartAgainText).X / 2);
+            _endGamePanelSpaceToStartAgainLoc.Y = _endGamePanelPosition.Y + 220;
+
+            _debugMoveCountPosition = new Vector2(20, ScreenHeight - 
+                _debugGame.MeasureString("Player move commands: counts").Y - 20);
+            _debugMoveListPosition = new Vector2(ScreenWidth - 
+                _debugGame.MeasureString("[99] Start [00,00], End [00,00], Floor tile mod before count: 00").X - 20, 20);
         }
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            KeyboardState keyboardState = Keyboard.GetState();
+            GamePadState gamePadState = GamePad.GetState(PlayerIndex.One);
+
+            if (keyboardState.IsKeyDown(Keys.Escape) || gamePadState.IsButtonDown(Buttons.Back))
                 Exit();
+
             if (_isDuringGame)
             {
-                if ((GamePad.GetState(PlayerIndex.One).DPad.Up == ButtonState.Pressed ||  Keyboard.GetState().IsKeyDown(Keys.Up))
+                if ((keyboardState.IsKeyDown(Keys.Up) || keyboardState.IsKeyDown(Keys.W) || gamePadState.IsButtonDown(Buttons.DPadUp))
                     && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
                 {
                     _moveVerse = new Vector2(0.0f, -1.0f);
                     _playerPerformMove = true;
                 }
 
-                if ((GamePad.GetState(PlayerIndex.One).DPad.Down == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Down))
+                if ((keyboardState.IsKeyDown(Keys.Down) || keyboardState.IsKeyDown(Keys.S) || gamePadState.IsButtonDown(Buttons.DPadDown))
                     && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
                 {
                     _moveVerse = new Vector2(0.0f, 1.0f);
                     _playerPerformMove = true;
                 }
 
-                if ((GamePad.GetState(PlayerIndex.One).DPad.Left == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Left))
+                if ((keyboardState.IsKeyDown(Keys.Left) || keyboardState.IsKeyDown(Keys.A) || gamePadState.IsButtonDown(Buttons.DPadLeft))
                     && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
                 {
                     _moveVerse = new Vector2(-1.0f, 0.0f);
                     _playerPerformMove = true;
                 }
 
-                if ((GamePad.GetState(PlayerIndex.One).DPad.Right == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Right))
+                if ((keyboardState.IsKeyDown(Keys.Right) || keyboardState.IsKeyDown(Keys.D) || gamePadState.IsButtonDown(Buttons.DPadRight))
                     && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
                 {
                     _moveVerse = new Vector2(1.0f, 0.0f);
                     _playerPerformMove = true;
                 }
-                if ((GamePad.GetState(PlayerIndex.One).Buttons.LeftShoulder == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.U))
+                if ((keyboardState.IsKeyDown(Keys.U) || gamePadState.IsButtonDown(Buttons.LeftShoulder))
                     && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
                 {
                     _playerUndoMove = true;
                     _playerPerformMove = true;
                 }
-                if ((GamePad.GetState(PlayerIndex.One).Buttons.RightShoulder == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.R))
+                if ((keyboardState.IsKeyDown(Keys.R) || gamePadState.IsButtonDown(Buttons.RightShoulder))
                     && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
                 {
                     _playerRedoMove = true;
@@ -152,7 +182,7 @@ namespace SlidingTile_MonoGame
             }
             else
             {
-                if (GamePad.GetState(PlayerIndex.One).Buttons.Start == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Space))
+                if (keyboardState.IsKeyDown(Keys.Space) || gamePadState.IsButtonDown(Buttons.Start))
                 {
                     StartNewGame();
                 }
@@ -205,7 +235,7 @@ namespace SlidingTile_MonoGame
                 _spriteBatch.DrawString(_digitFloor, textInside, finalPosition + vectorTextOffset, colorText);
             }
 
-            _spriteBatch.DrawString(_debugGame, "Player move commands: counts " + _moveCommands.Count.ToString() + ", index " + _moveCommandsIndex.ToString(), debugMoveCountPosition, Color.White);
+            _spriteBatch.DrawString(_debugGame, "Player move commands: counts " + _moveCommands.Count.ToString() + ", index " + _moveCommandsIndex.ToString(), _debugMoveCountPosition, Color.White);
             for (int i = 0; i < _moveCommands.Count; i++)
             {
                 Vector2 verticalOffset = new Vector2(0, 28 * i);
@@ -217,7 +247,7 @@ namespace SlidingTile_MonoGame
                     currentIndex = Color.Green;
                 }
                 _spriteBatch.DrawString(_debugGame, "[" + i.ToString() + "] Start [" + start.X.ToString() + "," + start.Y.ToString() + "], End [" + end.X.ToString() + 
-                    "," + end.Y.ToString() + "], Floor tile mod before count: " + _moveCommands[i].GetModifiedFloorTileBefore().Count.ToString(), debugMoveListPosition + verticalOffset, currentIndex);
+                    "," + end.Y.ToString() + "], Floor tile mod before count: " + _moveCommands[i].GetModifiedFloorTileBefore().Count.ToString(), _debugMoveListPosition + verticalOffset, currentIndex);
             }
 
             _spriteBatch.Draw(_playerTexture2D, _playerPosition, Color.White);
@@ -225,16 +255,16 @@ namespace SlidingTile_MonoGame
             if (_isDuringGame == false)
             {
                 _spriteBatch.Draw(_endGamePanelTexture2D, _endGamePanelPosition, Color.White);
-                _spriteBatch.DrawString(_gameEnd, "Game Over!!!", _endGamePanelGameOverPosition, Color.White);
+                _spriteBatch.DrawString(_gameEnd, _endGamePanelFinishGameOver, _endGamePanelGameOverLoc, Color.White);
                 if (_gameFinishSuccesfull)
                 {
-                    _spriteBatch.DrawString(_gameEnd, "You WIN :)", _endGamePanelFinishStatus, Color.GreenYellow);
+                    _spriteBatch.DrawString(_gameEnd, _endGamePanelFinishStatusWin, _endGamePanelFinishStatusWinLoc, Color.GreenYellow);
                 }
                 else
                 {
-                    _spriteBatch.DrawString(_gameEnd, "You LOSE :(", _endGamePanelFinishStatus, Color.Red);
+                    _spriteBatch.DrawString(_gameEnd, _endGamePanelFinishStatusLose, _endGamePanelFinishStatusLoseLoc, Color.Red);
                 }
-                _spriteBatch.DrawString(_debugGame, "[Space, START] - Restart game", _endGamePanelSpaceToStartAgain, Color.White);
+                _spriteBatch.DrawString(_debugGame, _endGamePanelSpaceToStartAgainText, _endGamePanelSpaceToStartAgainLoc, Color.White);
 
             }
 

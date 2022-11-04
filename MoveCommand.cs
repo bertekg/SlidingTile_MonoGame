@@ -1,37 +1,36 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
-using static SlidingTile_MonoGame.Game1;
 
 namespace SlidingTile_MonoGame
 {
     internal class MoveCommand
     {
-        private Point startPoint;
-        private Point endPoint;
-        private List<FloorTile> modifiedFloorTileBefore;
-        private List<FloorTile> modifiedFloorTileAfter;
+        private Point _startPoint;
+        private Point _endPoint;
+        private List<FloorTile> _modifiedFloorTileBefore;
+        private List<FloorTile> _modifiedFloorTileAfter;
         public MoveCommand(Point startPoint, Point endPoint, List<FloorTile> modifiedFloorTileBefore, List<FloorTile> modifiedFloorTileAfter)
         {
-            this.startPoint = startPoint;
-            this.endPoint = endPoint;
-            this.modifiedFloorTileBefore = modifiedFloorTileBefore;
-            this.modifiedFloorTileAfter = modifiedFloorTileAfter;
+            _startPoint = startPoint;
+            _endPoint = endPoint;
+            _modifiedFloorTileBefore = modifiedFloorTileBefore;
+            _modifiedFloorTileAfter = modifiedFloorTileAfter;
         }
         public Point GetStartPoint()
         {
-            return startPoint;
+            return _startPoint;
         }
         public Point GetEndPoint()
         {
-            return endPoint;
+            return _endPoint;
         }
         public List<FloorTile> GetModifiedFloorTileBefore()
         {
-            return modifiedFloorTileBefore;
+            return _modifiedFloorTileBefore;
         }
         public List<FloorTile> GetModifiedFloorTileAfter()
         {
-            return modifiedFloorTileAfter;
+            return _modifiedFloorTileAfter;
         }
     }
 }
