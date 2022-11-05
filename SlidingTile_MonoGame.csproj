@@ -23,7 +23,10 @@
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="LevelBasic\0_Basic_01.xml">
+    <None Update="Levels\0_Basic\0_Basic_01.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Levels\2_Ice\2_Ice_03.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -18,7 +18,7 @@ namespace SlidingTile_MonoGame
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        private Texture2D _playerTexture2D;
+        private Texture2D _playerSprite;
 
         private Vector2 _playerPosition;
         private Point _playerVirtualPoint;
@@ -34,7 +34,7 @@ namespace SlidingTile_MonoGame
         private float _stepDistans;
         private Vector2 _moveVerse, _playerPosInit;
 
-        private Texture2D _floorTileTexture2D;
+        private Texture2D _floorTileNormalSprite, _floorTileIceSprite;
 
         private SpriteFont _digitFloor;
         private SpriteFont _debugGame;
@@ -68,7 +68,7 @@ namespace SlidingTile_MonoGame
         }
         protected override void Initialize()
         {
-            Window.Title = "Sliding Tile - MonoGame (0.3.0 - 2022.11.04)";
+            Window.Title = "Sliding Tile - MonoGame (0.3.1 - 2022.11.05)";
 
             StartNewGame();
 
@@ -94,8 +94,9 @@ namespace SlidingTile_MonoGame
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            _playerTexture2D = Content.Load<Texture2D>("sprites/player");
-            _floorTileTexture2D = Content.Load<Texture2D>("sprites/floorTile");
+            _playerSprite = Content.Load<Texture2D>("sprites/player");
+            _floorTileNormalSprite = Content.Load<Texture2D>("sprites/floorTile");
+            _floorTileIceSprite = Content.Load<Texture2D>("sprites/floorTile_Ice");
             _endGamePanelTexture2D = Content.Load<Texture2D>("sprites/endGamePanel");
 
             _endGamePanelPosition = new Vector2(
@@ -200,7 +201,15 @@ namespace SlidingTile_MonoGame
             {
                 if (_floorTiles[i].Type == FloorTileType.Normal && _floorTiles[i].Number == 0) continue;
                 Vector2 finalPosition = new Vector2(100*((int)_levelStart.X + _floorTiles[i].PosX), 100 * ((int)_levelStart.Y - _floorTiles[i].PosY));
-                _spriteBatch.Draw(_floorTileTexture2D, finalPosition, Color.White);
+                if (_floorTiles[i].Type != FloorTileType.Ice)
+                {
+                    _spriteBatch.Draw(_floorTileNormalSprite, finalPosition, Color.White);
+                }
+                else
+                {
+                    _spriteBatch.Draw(_floorTileIceSprite, finalPosition, Color.White);
+                }
+                
                 string textInside = string.Empty;
                 Color colorText = new Color();
                 Vector2 vectorTextOffset = new Vector2();
@@ -228,6 +237,9 @@ namespace SlidingTile_MonoGame
                         }
                         break;
                     case FloorTileType.Ice:
+                        textInside = _floorTiles[i].Number.ToString();
+                        colorText = Color.Black;
+                        vectorTextOffset = new Vector2(35, 15);
                         break;
                     default:
                         break;
@@ -250,7 +262,7 @@ namespace SlidingTile_MonoGame
                     "," + end.Y.ToString() + "], Floor tile mod before count: " + _moveCommands[i].GetModifiedFloorTileBefore().Count.ToString(), _debugMoveListPosition + verticalOffset, currentIndex);
             }
 
-            _spriteBatch.Draw(_playerTexture2D, _playerPosition, Color.White);
+            _spriteBatch.Draw(_playerSprite, _playerPosition, Color.White);
 
             if (_isDuringGame == false)
             {
@@ -422,7 +434,7 @@ namespace SlidingTile_MonoGame
             _floorTiles = new List<FloorTile>();
             _currentFloorTile = new FloorTile();
             XmlDocument xmlDocument = new XmlDocument();
-            xmlDocument.Load("LevelBasic/0_Basic_01.xml");
+            xmlDocument.Load("Levels/2_Ice/2_Ice_03.xml");
             string xmlString = xmlDocument.OuterXml;
             using (StringReader read = new StringReader(xmlString))
             {
