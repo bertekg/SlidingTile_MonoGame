@@ -30,7 +30,7 @@ namespace SlidingTile_MonoGame
         private bool _playerPerformMove;
         private bool _playerMoveInital;
         private float _playerMoveSpeed;
-        private double _timeMoveMax, _timeMoveCurrent;
+        private double _timeSignleMoveMax, _timeMoveCurrent, _timeTotalMove;
         private float _stepDistans;
         private Vector2 _moveVerse, _playerPosInit;
 
@@ -60,6 +60,11 @@ namespace SlidingTile_MonoGame
         private string _endGamePanelFinishGameOver, _endGamePanelFinishStatusLose;
         private string _endGamePanelFinishStatusWin, _endGamePanelSpaceToStartAgainText;
 
+        List<int> _routTilesIndexes;
+
+        KeyboardState currentKS, previousKS;
+        GamePadState currentGPS, previousGPS;
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -68,11 +73,11 @@ namespace SlidingTile_MonoGame
         }
         protected override void Initialize()
         {
-            Window.Title = "Sliding Tile - MonoGame (0.3.1 - 2022.11.05)";
+            Window.Title = "Sliding Tile - MonoGame (0.3.2 - 2022.11.06)";
 
             StartNewGame();
 
-            _timeMoveMax = 0.3d;
+            _timeSignleMoveMax = 0.3d;
             _timeMoveCurrent = 0.0d;
             _stepDistans = 100.0f;
 
@@ -132,58 +137,68 @@ namespace SlidingTile_MonoGame
 
         protected override void Update(GameTime gameTime)
         {
-            KeyboardState keyboardState = Keyboard.GetState();
-            GamePadState gamePadState = GamePad.GetState(PlayerIndex.One);
+            previousKS = currentKS;
+            currentKS = Keyboard.GetState();
+            previousGPS = currentGPS;
+            currentGPS = GamePad.GetState(PlayerIndex.One);
 
-            if (keyboardState.IsKeyDown(Keys.Escape) || gamePadState.IsButtonDown(Buttons.Back))
+            if (currentKS.IsKeyDown(Keys.Escape) || currentGPS.IsButtonDown(Buttons.Back))
                 Exit();
 
             if (_isDuringGame)
             {
-                if ((keyboardState.IsKeyDown(Keys.Up) || keyboardState.IsKeyDown(Keys.W) || gamePadState.IsButtonDown(Buttons.DPadUp))
+                if (((currentKS.IsKeyDown(Keys.Up) && previousKS.IsKeyUp(Keys.Up)) ||
+                    (currentKS.IsKeyDown(Keys.W) && previousKS.IsKeyUp(Keys.W)) ||
+                    (currentGPS.IsButtonDown(Buttons.DPadUp) && previousGPS.IsButtonUp(Buttons.DPadUp)))
                     && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
                 {
                     _moveVerse = new Vector2(0.0f, -1.0f);
                     _playerPerformMove = true;
                 }
 
-                if ((keyboardState.IsKeyDown(Keys.Down) || keyboardState.IsKeyDown(Keys.S) || gamePadState.IsButtonDown(Buttons.DPadDown))
+                if (((currentKS.IsKeyDown(Keys.Down) && previousKS.IsKeyUp(Keys.Down)) ||
+                    (currentKS.IsKeyDown(Keys.S) && previousKS.IsKeyUp(Keys.S)) ||
+                    (currentGPS.IsButtonDown(Buttons.DPadDown) && previousGPS.IsButtonUp(Buttons.DPadDown)))
                     && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
                 {
                     _moveVerse = new Vector2(0.0f, 1.0f);
                     _playerPerformMove = true;
                 }
 
-                if ((keyboardState.IsKeyDown(Keys.Left) || keyboardState.IsKeyDown(Keys.A) || gamePadState.IsButtonDown(Buttons.DPadLeft))
+                if (((currentKS.IsKeyDown(Keys.Left) && previousKS.IsKeyUp(Keys.Left)) ||
+                    (currentKS.IsKeyDown(Keys.A) && previousKS.IsKeyUp(Keys.A)) ||
+                    (currentGPS.IsButtonDown(Buttons.DPadLeft) && previousGPS.IsButtonUp(Buttons.DPadLeft)))
                     && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
                 {
                     _moveVerse = new Vector2(-1.0f, 0.0f);
                     _playerPerformMove = true;
                 }
 
-                if ((keyboardState.IsKeyDown(Keys.Right) || keyboardState.IsKeyDown(Keys.D) || gamePadState.IsButtonDown(Buttons.DPadRight))
+                if (((currentKS.IsKeyDown(Keys.Right) && previousKS.IsKeyUp(Keys.Right)) ||
+                    (currentKS.IsKeyDown(Keys.D) && previousKS.IsKeyUp(Keys.D)) ||
+                    (currentGPS.IsButtonDown(Buttons.DPadRight) && previousGPS.IsButtonUp(Buttons.DPadRight)))
                     && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
                 {
                     _moveVerse = new Vector2(1.0f, 0.0f);
                     _playerPerformMove = true;
                 }
-                if ((keyboardState.IsKeyDown(Keys.U) || gamePadState.IsButtonDown(Buttons.LeftShoulder))
-                    && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
-                {
-                    _playerUndoMove = true;
-                    _playerPerformMove = true;
-                }
-                if ((keyboardState.IsKeyDown(Keys.R) || gamePadState.IsButtonDown(Buttons.RightShoulder))
-                    && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
-                {
-                    _playerRedoMove = true;
-                    _playerPerformMove = true;
-                }
+                //if ((currentKS.IsKeyDown(Keys.U) || currentGPS.IsButtonDown(Buttons.LeftShoulder))
+                //    && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
+                //{
+                //    _playerUndoMove = true;
+                //    _playerPerformMove = true;
+                //}
+                //if ((currentKS.IsKeyDown(Keys.R) || currentGPS.IsButtonDown(Buttons.RightShoulder))
+                //    && _playerPerformMove == false && _playerUndoMove == false && _playerRedoMove == false)
+                //{
+                //    _playerRedoMove = true;
+                //    _playerPerformMove = true;
+                //}
                 MovePlayer(gameTime.ElapsedGameTime.TotalSeconds);
             }
             else
             {
-                if (keyboardState.IsKeyDown(Keys.Space) || gamePadState.IsButtonDown(Buttons.Start))
+                if (currentKS.IsKeyDown(Keys.Space) || currentGPS.IsButtonDown(Buttons.Start))
                 {
                     StartNewGame();
                 }
@@ -200,6 +215,7 @@ namespace SlidingTile_MonoGame
             for (int i = 0; i < _floorTiles.Count; i++)
             {
                 if (_floorTiles[i].Type == FloorTileType.Normal && _floorTiles[i].Number == 0) continue;
+                if (_floorTiles[i].Type == FloorTileType.Ice && _floorTiles[i].Number == 0) continue;
                 Vector2 finalPosition = new Vector2(100*((int)_levelStart.X + _floorTiles[i].PosX), 100 * ((int)_levelStart.Y - _floorTiles[i].PosY));
                 if (_floorTiles[i].Type != FloorTileType.Ice)
                 {
@@ -248,6 +264,7 @@ namespace SlidingTile_MonoGame
             }
 
             _spriteBatch.DrawString(_debugGame, "Player move commands: counts " + _moveCommands.Count.ToString() + ", index " + _moveCommandsIndex.ToString(), _debugMoveCountPosition, Color.White);
+            _spriteBatch.DrawString(_debugGame, "Player current virtual location: [" + _playerVirtualPoint.X + "," + _playerVirtualPoint.Y + "]", _debugMoveCountPosition + new Vector2(0, -30), Color.White);
             for (int i = 0; i < _moveCommands.Count; i++)
             {
                 Vector2 verticalOffset = new Vector2(0, 28 * i);
@@ -284,20 +301,106 @@ namespace SlidingTile_MonoGame
 
             base.Draw(gameTime);
         }
+        private List<int> GetPlayerRoutIndexes()
+        {
+            List<int> floorTiles = new List<int>();
+            List<FloorTile> clonedList = new List<FloorTile>();
+            for (int i = 0; i < _floorTiles.Count; i++)
+            {
+                FloorTile floorTile = new FloorTile()
+                {
+                    PosX = _floorTiles[i].PosX,
+                    PosY = _floorTiles[i].PosY,
+                    Number = _floorTiles[i].Number,
+                    Type = _floorTiles[i].Type
+                };
+                clonedList.Add(floorTile);
+            };
+            bool duringSerching = true;
+            Point pointForDetection = _playerVirtualPoint;
+            while (duringSerching)
+            {
+                Point checkThisFloor = pointForDetection + new Point((int)_moveVerse.X, -(int)_moveVerse.Y);
+                FloorTile floorTile = clonedList.Find(pos => pos.PosX == checkThisFloor.X && pos.PosY == checkThisFloor.Y);
+                if (floorTile != null)
+                {
+                    if (floorTile.Number > 0 || floorTile.Type == FloorTileType.Finish)
+                    {
+                        int index = clonedList.IndexOf(floorTile);
+                        switch (floorTile.Type)
+                        {
+                            case FloorTileType.None:
+                                duringSerching = false;
+                                break;
+                            case FloorTileType.Finish:
+                                floorTiles.Add(index);
+                                duringSerching = false;
+                                break;
+                            case FloorTileType.Normal:
+                                floorTiles.Add(index);
+                                clonedList[index].Number--;
+                                duringSerching = false;
+                                break;
+                            case FloorTileType.Ice:
+                                floorTiles.Add(index);
+                                clonedList[index].Number--;
+                                pointForDetection = checkThisFloor;
+                                break;
+                            default:
+                                duringSerching = false;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        duringSerching = false;
+                    }                    
+                }
+                else
+                {
+                    duringSerching = false;
+                }
+            }           
+            return floorTiles;
+        }
         private void MovePlayer(double totalSecounds)
         {
             if(_playerPerformMove == true && _playerMoveInital == false && _playerUndoMove == false && _playerRedoMove == false)
             {
-                _playerVirtualPointDestination = _playerVirtualPoint + new Point((int)_moveVerse.X, -(int)_moveVerse.Y);
-                _currentFloorTile = _floorTiles.Find(pos => pos.PosX == _playerVirtualPointDestination.X && pos.PosY == _playerVirtualPointDestination.Y);
-                if (_currentFloorTile != null)
+                _routTilesIndexes = GetPlayerRoutIndexes();
+                if (_routTilesIndexes != null)
                 {
-                    if (_currentFloorTile.Number > 0 || _currentFloorTile.Type == FloorTileType.Finish)
+                    if (_routTilesIndexes.Count > 0)
                     {
-                        _playerMoveSpeed = _stepDistans / (float)_timeMoveMax;
-                        _timeMoveCurrent = 0.0d;
-                        _playerMoveInital = true;
-                        _playerPosInit = _playerPosition;
+                        for (int i = 0; i < _routTilesIndexes.Count; i++)
+                        {
+                            _playerVirtualPoint.X = _floorTiles[_routTilesIndexes[i]].PosX;
+                            _playerVirtualPoint.Y = _floorTiles[_routTilesIndexes[i]].PosY;
+                            _playerPosition = new Vector2(_stepDistans * _levelStart.X, _stepDistans * _levelStart.Y) +
+                                new Vector2(_stepDistans * _playerVirtualPoint.X, -_stepDistans * _playerVirtualPoint.Y);
+                            _floorTiles[_routTilesIndexes[i]].Number--;
+                            if (_floorTiles[_routTilesIndexes[i]].Type == FloorTileType.Finish)
+                            {
+                                bool answere = true;
+                                foreach (FloorTile tile in _floorTiles)
+                                {
+                                    if ((tile.Type == FloorTileType.Normal || tile.Type == FloorTileType.Ice) && tile.Number != 0)
+                                    {
+                                        answere = false;
+                                    }
+                                }
+                                _isDuringGame = false;
+                                _gameFinishSuccesfull = answere;
+                                _playerPerformMove = false;
+                                break;
+                            }
+                            _playerPerformMove = false;
+                        }
+                        //_playerMoveSpeed = _stepDistans / (float)_timeSignleMoveMax;
+                        //_currentFloorTile = _floorTiles[_routTilesIndexes[0]];
+                        //_timeMoveCurrent = 0.0d;
+                        //_playerMoveInital = true;
+                        //_playerPosInit = _playerPosition;
                     }
                     else
                     {
@@ -309,119 +412,122 @@ namespace SlidingTile_MonoGame
                     _playerPerformMove = false;
                 }
             }
-            if(_playerPerformMove == true && _playerMoveInital == false && _playerUndoMove == true && _playerRedoMove == false)
-            {
-                if (_moveCommandsIndex > 0)
-                {
-                    MoveCommand moveCommand = _moveCommands[_moveCommandsIndex - 1];
-                    _playerVirtualPointDestination = moveCommand.GetStartPoint();
-                    _playerMoveSpeed = _stepDistans / (float)_timeMoveMax;
-                    _timeMoveCurrent = 0.0d;
-                    _playerMoveInital = true;
-                    _playerPosInit = _playerPosition;
-                    _moveVerse = new Vector2(moveCommand.GetStartPoint().X - moveCommand.GetEndPoint().X, -(moveCommand.GetStartPoint().Y - moveCommand.GetEndPoint().Y));
+            _playerPerformMove = false;
+            //if (_playerPerformMove == true && _playerMoveInital == false && _playerUndoMove == true && _playerRedoMove == false)
+            //{
+            //    if (_moveCommandsIndex > 0)
+            //    {
+            //        MoveCommand moveCommand = _moveCommands[_moveCommandsIndex - 1];
+            //        _playerVirtualPointDestination = moveCommand.GetStartPoint();
+            //        _playerMoveSpeed = _stepDistans / (float)_timeSignleMoveMax;
+            //        _timeMoveCurrent = 0.0d;
+            //        _playerMoveInital = true;
+            //        _playerPosInit = _playerPosition;
+            //        _moveVerse = new Vector2(moveCommand.GetStartPoint().X - moveCommand.GetEndPoint().X, -(moveCommand.GetStartPoint().Y - moveCommand.GetEndPoint().Y));
 
-                    List<FloorTile> floorTiles = _moveCommands[_moveCommandsIndex - 1].GetModifiedFloorTileBefore();
-                    foreach (FloorTile floorTile in floorTiles)
-                    {
-                        int indexTile = _floorTiles.FindIndex(item => item.PosX == floorTile.PosX && item.PosY == floorTile.PosY);
-                        _floorTiles[indexTile] = floorTile;
-                    }
-                }
-                else
-                {
-                    _playerPerformMove = false;
-                    _playerUndoMove = false;
-                }
-            }
-            if (_playerPerformMove == true && _playerMoveInital == false && _playerUndoMove == false && _playerRedoMove == true)
-            {
-                if (_moveCommandsIndex < _moveCommands.Count)
-                {
-                    MoveCommand moveCommand = _moveCommands[_moveCommandsIndex];
-                    _playerVirtualPointDestination = moveCommand.GetEndPoint();
-                    _playerMoveSpeed = _stepDistans / (float)_timeMoveMax;
-                    _timeMoveCurrent = 0.0d;
-                    _playerMoveInital = true;
-                    _playerPosInit = _playerPosition;
-                    _moveVerse = new Vector2(moveCommand.GetEndPoint().X - moveCommand.GetStartPoint().X, -(moveCommand.GetEndPoint().Y - moveCommand.GetStartPoint().Y));
-                }
-                else
-                {
-                    _playerPerformMove = false;
-                    _playerRedoMove = false;
-                }
-            }
-            _currChangeValue = (float)(_playerMoveSpeed * totalSecounds);
-            if (_playerPerformMove == true & _playerMoveInital == true)
-            {
-                if (_timeMoveCurrent <= _timeMoveMax)
-                {
-                    _playerPosition += new Vector2(_currChangeValue * _moveVerse.X, _currChangeValue * _moveVerse.Y);
-                    _timeMoveCurrent += totalSecounds;
-                }
-                else
-                {
-                    _playerPosition = new Vector2(_playerPosInit.X + (_stepDistans * _moveVerse.X), _playerPosInit.Y + (_stepDistans * _moveVerse.Y));
-                    _playerMoveInital = false;
-                    _playerPerformMove = false;
+            //        List<FloorTile> floorTiles = _moveCommands[_moveCommandsIndex - 1].GetModifiedFloorTileBefore();
+            //        foreach (FloorTile floorTile in floorTiles)
+            //        {
+            //            int indexTile = _floorTiles.FindIndex(item => item.PosX == floorTile.PosX && item.PosY == floorTile.PosY);
+            //            _floorTiles[indexTile] = floorTile;
+            //        }
+            //    }
+            //    else
+            //    {
+            //        _playerPerformMove = false;
+            //        _playerUndoMove = false;
+            //    }
+            //}
+            //if (_playerPerformMove == true && _playerMoveInital == false && _playerUndoMove == false && _playerRedoMove == true)
+            //{
+            //    if (_moveCommandsIndex < _moveCommands.Count)
+            //    {
+            //        MoveCommand moveCommand = _moveCommands[_moveCommandsIndex];
+            //        _playerVirtualPointDestination = moveCommand.GetEndPoint();
+            //        _playerMoveSpeed = _stepDistans / (float)_timeSignleMoveMax;
+            //        _timeMoveCurrent = 0.0d;
+            //        _playerMoveInital = true;
+            //        _playerPosInit = _playerPosition;
+            //        _moveVerse = new Vector2(moveCommand.GetEndPoint().X - moveCommand.GetStartPoint().X, -(moveCommand.GetEndPoint().Y - moveCommand.GetStartPoint().Y));
+            //    }
+            //    else
+            //    {
+            //        _playerPerformMove = false;
+            //        _playerRedoMove = false;
+            //    }
+            //}
+            
+            //_currChangeValue = (float)(_playerMoveSpeed * totalSecounds);
+            
+            //if (_playerPerformMove == true & _playerMoveInital == true)
+            //{
+            //    if (_timeMoveCurrent <= _timeSignleMoveMax)
+            //    {
+            //        _playerPosition += new Vector2(_currChangeValue * _moveVerse.X, _currChangeValue * _moveVerse.Y);
+            //        _timeMoveCurrent += totalSecounds;
+            //    }
+            //    else
+            //    {
+            //        _playerPosition = new Vector2(_playerPosInit.X + (_stepDistans * _moveVerse.X), _playerPosInit.Y + (_stepDistans * _moveVerse.Y));
+            //        _playerMoveInital = false;
+            //        _playerPerformMove = false;
 
-                    if (_playerUndoMove == false && _playerRedoMove == false)
-                    {
-                        if (_moveCommandsIndex < _moveCommands.Count)
-                        {
-                            int howManyDelete = _moveCommands.Count - _moveCommandsIndex;
-                            for (int i = 0; i < howManyDelete; i++)
-                            {
-                                _moveCommands.RemoveAt(_moveCommands.Count - 1);
-                            }
-                        }
-                        List<FloorTile> modFloorTilesBefore = new List<FloorTile>();
-                        List<FloorTile> modFloorTilesAfter = new List<FloorTile>();
-                        if (_currentFloorTile.Type == FloorTileType.Normal)
-                        {
-                            int indexTile = _floorTiles.FindIndex(item => item.PosX == _currentFloorTile.PosX && item.PosY == _currentFloorTile.PosY);
-                            modFloorTilesBefore.Add(new FloorTile() { Number = _currentFloorTile.Number, PosX = _currentFloorTile.PosX, PosY = _currentFloorTile.PosY, Type = _currentFloorTile.Type});
-                            _currentFloorTile.Number -= 1;
-                            _floorTiles[indexTile].Number = _currentFloorTile.Number;
-                            modFloorTilesAfter.Add(new FloorTile() { Number = _currentFloorTile.Number, PosX = _currentFloorTile.PosX, PosY = _currentFloorTile.PosY, Type = _currentFloorTile.Type });
-                        }
-                        else if(_currentFloorTile.Type == FloorTileType.Finish)
-                        {
-                            bool answere = true;
-                            foreach (FloorTile tile in _floorTiles)
-                            {
-                                if (tile.Type == FloorTileType.Normal && tile.Number != 0)
-                                {
-                                    answere = false;
-                                }
-                            }
-                            _isDuringGame = false;
-                            _gameFinishSuccesfull = answere;
-                        }
-                        _moveCommands.Add(new MoveCommand(_playerVirtualPoint, _playerVirtualPointDestination, modFloorTilesBefore, modFloorTilesAfter));
-                        _moveCommandsIndex = _moveCommands.Count;
+            //        if (_playerUndoMove == false && _playerRedoMove == false)
+            //        {
+            //            if (_moveCommandsIndex < _moveCommands.Count)
+            //            {
+            //                int howManyDelete = _moveCommands.Count - _moveCommandsIndex;
+            //                for (int i = 0; i < howManyDelete; i++)
+            //                {
+            //                    _moveCommands.RemoveAt(_moveCommands.Count - 1);
+            //                }
+            //            }
+            //            List<FloorTile> modFloorTilesBefore = new List<FloorTile>();
+            //            List<FloorTile> modFloorTilesAfter = new List<FloorTile>();
+            //            if (_currentFloorTile.Type == FloorTileType.Normal)
+            //            {
+            //                int indexTile = _floorTiles.FindIndex(item => item.PosX == _currentFloorTile.PosX && item.PosY == _currentFloorTile.PosY);
+            //                modFloorTilesBefore.Add(new FloorTile() { Number = _currentFloorTile.Number, PosX = _currentFloorTile.PosX, PosY = _currentFloorTile.PosY, Type = _currentFloorTile.Type});
+            //                _currentFloorTile.Number -= 1;
+            //                _floorTiles[indexTile].Number = _currentFloorTile.Number;
+            //                modFloorTilesAfter.Add(new FloorTile() { Number = _currentFloorTile.Number, PosX = _currentFloorTile.PosX, PosY = _currentFloorTile.PosY, Type = _currentFloorTile.Type });
+            //            }
+            //            else if(_currentFloorTile.Type == FloorTileType.Finish)
+            //            {
+            //                bool answere = true;
+            //                foreach (FloorTile tile in _floorTiles)
+            //                {
+            //                    if (tile.Type == FloorTileType.Normal && tile.Number != 0)
+            //                    {
+            //                        answere = false;
+            //                    }
+            //                }
+            //                _isDuringGame = false;
+            //                _gameFinishSuccesfull = answere;
+            //            }
+            //            _moveCommands.Add(new MoveCommand(_playerVirtualPoint, _playerVirtualPointDestination, modFloorTilesBefore, modFloorTilesAfter));
+            //            _moveCommandsIndex = _moveCommands.Count;
                         
-                    }
-                    if (_playerUndoMove == true)
-                    {
-                        _moveCommandsIndex -= 1;
-                        _playerUndoMove = false;
-                    }
-                    if (_playerRedoMove == true)
-                    {   
-                        List<FloorTile> floorTiles = _moveCommands[_moveCommandsIndex].GetModifiedFloorTileAfter();
-                        foreach (FloorTile floorTile in floorTiles)
-                        {
-                            int indexTile = _floorTiles.FindIndex(item => item.PosX == floorTile.PosX && item.PosY == floorTile.PosY);
-                            _floorTiles[indexTile] = floorTile;
-                        }
-                        _moveCommandsIndex += 1;
-                        _playerRedoMove = false;
-                    }
-                    _playerVirtualPoint = _playerVirtualPointDestination;
-                }
-            }
+            //        }
+            //        if (_playerUndoMove == true)
+            //        {
+            //            _moveCommandsIndex -= 1;
+            //            _playerUndoMove = false;
+            //        }
+            //        if (_playerRedoMove == true)
+            //        {   
+            //            List<FloorTile> floorTiles = _moveCommands[_moveCommandsIndex].GetModifiedFloorTileAfter();
+            //            foreach (FloorTile floorTile in floorTiles)
+            //            {
+            //                int indexTile = _floorTiles.FindIndex(item => item.PosX == floorTile.PosX && item.PosY == floorTile.PosY);
+            //                _floorTiles[indexTile] = floorTile;
+            //            }
+            //            _moveCommandsIndex += 1;
+            //            _playerRedoMove = false;
+            //        }
+            //        _playerVirtualPoint = _playerVirtualPointDestination;
+            //    }
+            //}
         }
         private Vector2 GetLevelStart()
         {
