@@ -1,6 +1,6 @@
 # Sliding Tile - MonoGame
  
-Logic game where you should clear all tiles before reaching the finish of level. This game is developed in MonoGame.
+Logic game where you should clear all tiles before reaching the finish of level. Level editor for this game you can find here: https://github.com/bertekg/SlidingTile_LevelEditor. This game is developed in MonoGame.
 
 ## Builds
 If you want you can download current and previous versions of builds here: https://drive.google.com/drive/folders/1nyCEaqxJy2NloJKFAAwNZ96j-HRMUazD?usp=share_link
