@@ -123,7 +123,9 @@ namespace SlidingTile_MonoGame.Class
                 FloorTile floorTile = clonedList.Find(pos => pos.PosX == checkThisFloor.X && pos.PosY == checkThisFloor.Y);
                 if (floorTile != null)
                 {
-                    if (floorTile.Number > 0 || floorTile.Type == FloorTileType.Finish)
+                    if (floorTile.Number > 0 || 
+                        floorTile.Type == FloorTileType.Finish ||
+                        floorTile.Type == FloorTileType.Static)
                     {
                         int index = clonedList.IndexOf(floorTile);
                         switch (floorTile.Type)
@@ -144,6 +146,10 @@ namespace SlidingTile_MonoGame.Class
                                 floorTiles.Add(index);
                                 clonedList[index].Number--;
                                 pointForDetection = checkThisFloor;
+                                break;
+                            case FloorTileType.Static:
+                                floorTiles.Add(index);
+                                duringSerching = false;
                                 break;
                             default:
                                 duringSerching = false;

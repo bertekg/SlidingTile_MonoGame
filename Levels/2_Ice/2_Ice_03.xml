@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <ArrayOfFloorTile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <FloorTile>
     <PosX>0</PosX>
@@ -25,6 +25,48 @@
     <Number>3</Number>
   </FloorTile>
   <FloorTile>
+    <PosX>-1</PosX>
+    <PosY>3</PosY>
+    <Type>Ice</Type>
+    <Number>1</Number>
+  </FloorTile>
+  <FloorTile>
+    <PosX>-2</PosX>
+    <PosY>3</PosY>
+    <Type>Ice</Type>
+    <Number>1</Number>
+  </FloorTile>
+  <FloorTile>
+    <PosX>-2</PosX>
+    <PosY>4</PosY>
+    <Type>Ice</Type>
+    <Number>1</Number>
+  </FloorTile>
+  <FloorTile>
+    <PosX>-2</PosX>
+    <PosY>5</PosY>
+    <Type>Ice</Type>
+    <Number>1</Number>
+  </FloorTile>
+  <FloorTile>
+    <PosX>-1</PosX>
+    <PosY>5</PosY>
+    <Type>Ice</Type>
+    <Number>1</Number>
+  </FloorTile>
+  <FloorTile>
+    <PosX>0</PosX>
+    <PosY>5</PosY>
+    <Type>Ice</Type>
+    <Number>2</Number>
+  </FloorTile>
+  <FloorTile>
+    <PosX>0</PosX>
+    <PosY>4</PosY>
+    <Type>Ice</Type>
+    <Number>1</Number>
+  </FloorTile>
+  <FloorTile>
     <PosX>1</PosX>
     <PosY>3</PosY>
     <Type>Ice</Type>
@@ -37,40 +79,16 @@
     <Number>2</Number>
   </FloorTile>
   <FloorTile>
-    <PosX>-1</PosX>
-    <PosY>3</PosY>
-    <Type>Ice</Type>
-    <Number>1</Number>
-  </FloorTile>
-  <FloorTile>
-    <PosX>-2</PosX>
-    <PosY>3</PosY>
-    <Type>Ice</Type>
-    <Number>1</Number>
-  </FloorTile>
-  <FloorTile>
-    <PosX>-2</PosX>
+    <PosX>2</PosX>
     <PosY>4</PosY>
     <Type>Ice</Type>
     <Number>1</Number>
   </FloorTile>
   <FloorTile>
-    <PosX>-2</PosX>
+    <PosX>2</PosX>
     <PosY>5</PosY>
     <Type>Ice</Type>
     <Number>1</Number>
-  </FloorTile>
-  <FloorTile>
-    <PosX>-1</PosX>
-    <PosY>5</PosY>
-    <Type>Ice</Type>
-    <Number>1</Number>
-  </FloorTile>
-  <FloorTile>
-    <PosX>0</PosX>
-    <PosY>5</PosY>
-    <Type>Ice</Type>
-    <Number>2</Number>
   </FloorTile>
   <FloorTile>
     <PosX>1</PosX>
@@ -79,27 +97,9 @@
     <Number>1</Number>
   </FloorTile>
   <FloorTile>
-    <PosX>2</PosX>
-    <PosY>5</PosY>
-    <Type>Ice</Type>
-    <Number>1</Number>
-  </FloorTile>
-  <FloorTile>
-    <PosX>0</PosX>
-    <PosY>4</PosY>
-    <Type>Ice</Type>
-    <Number>1</Number>
-  </FloorTile>
-  <FloorTile>
     <PosX>0</PosX>
     <PosY>6</PosY>
     <Type>Finish</Type>
     <Number>0</Number>
-  </FloorTile>
-  <FloorTile>
-    <PosX>2</PosX>
-    <PosY>4</PosY>
-    <Type>Ice</Type>
-    <Number>1</Number>
   </FloorTile>
 </ArrayOfFloorTile>

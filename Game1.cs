@@ -24,7 +24,7 @@ namespace SlidingTile_MonoGame
         public bool _isDuringGame;
         private float _stepDistans;
 
-        private Texture2D _floorTileNormalSprite, _floorTileIceSprite;
+        private Texture2D _floorTileNormalSprite, _floorTileIceSprite, _floorTileStaticSprite, _floorTilePortalSprite;
 
         private SpriteFont _digitFloor;
         private SpriteFont _debugGame;
@@ -52,7 +52,7 @@ namespace SlidingTile_MonoGame
         }
         protected override void Initialize()
         {
-            Window.Title = "Sliding Tile - MonoGame (0.3.4 - 2022.11.07)";
+            Window.Title = "Sliding Tile - MonoGame (0.4.0 - 2022.11.25)";
 
             //_timeSignleMoveMax = 0.3d;
             _stepDistans = 100.0f;
@@ -76,6 +76,8 @@ namespace SlidingTile_MonoGame
             _playerSprite = Content.Load<Texture2D>("sprites/player");
             _floorTileNormalSprite = Content.Load<Texture2D>("sprites/floorTile");
             _floorTileIceSprite = Content.Load<Texture2D>("sprites/floorTile_Ice");
+            _floorTileStaticSprite = Content.Load<Texture2D>("sprites/florTile_Static");
+            _floorTilePortalSprite = Content.Load<Texture2D>("sprites/florTile_Portal");
             _endGamePanelTexture2D = Content.Load<Texture2D>("sprites/endGamePanel");
 
             _endGamePanelPosition = new Vector2(
@@ -170,7 +172,7 @@ namespace SlidingTile_MonoGame
             _floorTiles = new List<FloorTile>();
             _currentFloorTile = new FloorTile();
             XmlDocument xmlDocument = new XmlDocument();
-            xmlDocument.Load("Levels/2_Ice/2_Ice_03.xml");
+            xmlDocument.Load("Levels/T_Variant/Test5TileType.xml");
             string xmlString = xmlDocument.OuterXml;
             using (StringReader read = new StringReader(xmlString))
             {
@@ -207,6 +209,12 @@ namespace SlidingTile_MonoGame
                         break;
                     case FloorTileType.Ice:
                         tile = new Tile(_floorTileIceSprite);
+                        break;
+                    case FloorTileType.Static:
+                        tile = new Tile(_floorTileStaticSprite);
+                        break;
+                    case FloorTileType.Portal:
+                        tile = new Tile(_floorTilePortalSprite);
                         break;
                     default:
                         break;

@@ -31,18 +31,24 @@ namespace SlidingTile_MonoGame.Class
                     if (FloorTile.PosX != 0 || FloorTile.PosY != 0)
                     {
                         textInside = FloorTile.Number.ToString();
-                        colorText = Color.Black;
                         vectorTextOffset = new Vector2(35, 15);
                     }
                     else
                     {
-                        textInside = "S" + FloorTile.Number.ToString();
-                        colorText = Color.Green;
+                        textInside = $"S{FloorTile.Number}";
                         vectorTextOffset = new Vector2(15, 15);
                     }
+                    colorText = Color.Black;
                     break;
                 case FloorTileType.Ice:
                     textInside = FloorTile.Number.ToString();
+                    colorText = Color.Black;
+                    vectorTextOffset = new Vector2(35, 15);
+                    break;
+                case FloorTileType.Static:
+                    break;
+                case FloorTileType.Portal:
+                    textInside = FloorTile.Portal.ToString();
                     colorText = Color.Black;
                     vectorTextOffset = new Vector2(35, 15);
                     break;
