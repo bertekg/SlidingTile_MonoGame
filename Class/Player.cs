@@ -111,7 +111,8 @@ namespace SlidingTile_MonoGame.Class
                     PosX = _game1._floorTiles[i].PosX,
                     PosY = _game1._floorTiles[i].PosY,
                     Number = _game1._floorTiles[i].Number,
-                    Type = _game1._floorTiles[i].Type
+                    Type = _game1._floorTiles[i].Type,
+                    Portal = _game1._floorTiles[i].Portal
                 };
                 clonedList.Add(floorTile);
             };
@@ -149,6 +150,15 @@ namespace SlidingTile_MonoGame.Class
                                 break;
                             case FloorTileType.Static:
                                 floorTiles.Add(index);
+                                duringSerching = false;
+                                break;
+                            case FloorTileType.Portal:
+                                floorTiles.Add(index);
+                                clonedList[index].Number--;
+                                FloorTile nextPortal = clonedList.Find(item => item.Number == 1 && item.Portal == clonedList[index].Portal);
+                                int index2 = clonedList.IndexOf(nextPortal);
+                                floorTiles.Add(index2);
+                                clonedList[index2].Number--;
                                 duringSerching = false;
                                 break;
                             default:
@@ -189,7 +199,8 @@ namespace SlidingTile_MonoGame.Class
                             Number = _game1._floorTiles[_routTilesIndexes[i]].Number,
                             PosX = _game1._floorTiles[_routTilesIndexes[i]].PosX,
                             PosY = _game1._floorTiles[_routTilesIndexes[i]].PosY,
-                            Type = _game1._floorTiles[_routTilesIndexes[i]].Type
+                            Type = _game1._floorTiles[_routTilesIndexes[i]].Type,
+                            Portal = _game1._floorTiles[_routTilesIndexes[i]].Portal
                         });
 
                         _game1._floorTiles[_routTilesIndexes[i]].Number--;
@@ -198,7 +209,8 @@ namespace SlidingTile_MonoGame.Class
                             Number = _game1._floorTiles[_routTilesIndexes[i]].Number,
                             PosX = _game1._floorTiles[_routTilesIndexes[i]].PosX,
                             PosY = _game1._floorTiles[_routTilesIndexes[i]].PosY,
-                            Type = _game1._floorTiles[_routTilesIndexes[i]].Type
+                            Type = _game1._floorTiles[_routTilesIndexes[i]].Type,
+                            Portal = _game1._floorTiles[_routTilesIndexes[i]].Portal
                         });
 
                         if (_game1._floorTiles[_routTilesIndexes[i]].Type == FloorTileType.Finish)

@@ -52,7 +52,7 @@ namespace SlidingTile_MonoGame
         }
         protected override void Initialize()
         {
-            Window.Title = "Sliding Tile - MonoGame (0.4.0 - 2022.11.25)";
+            Window.Title = "Sliding Tile - MonoGame (0.4.1 - 2022.11.26)";
 
             //_timeSignleMoveMax = 0.3d;
             _stepDistans = 100.0f;

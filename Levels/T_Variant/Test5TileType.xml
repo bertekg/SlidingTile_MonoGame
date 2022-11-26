@@ -32,7 +32,7 @@
     <PosX>1</PosX>
     <PosY>1</PosY>
     <Type>Portal</Type>
-    <Number>0</Number>
+    <Number>1</Number>
     <Portal>1</Portal>
   </FloorTile>
   <FloorTile>
@@ -46,7 +46,7 @@
     <PosX>1</PosX>
     <PosY>-1</PosY>
     <Type>Portal</Type>
-    <Number>0</Number>
+    <Number>1</Number>
     <Portal>1</Portal>
   </FloorTile>
 </ArrayOfFloorTile>

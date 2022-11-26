@@ -14,6 +14,7 @@ namespace SlidingTile_MonoGame.Class
         {
             if (FloorTile.Type == FloorTileType.Normal && FloorTile.Number == 0) return;
             if (FloorTile.Type == FloorTileType.Ice && FloorTile.Number == 0) return;
+            if (FloorTile.Type == FloorTileType.Portal && FloorTile.Number == 0) return;
             base.Draw(spriteBatch);
             string textInside = string.Empty;
             Color colorText = new Color();
