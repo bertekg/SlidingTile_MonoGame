@@ -25,6 +25,7 @@ namespace SlidingTile_MonoGame
         private float _stepDistans;
 
         private Texture2D _floorTileNormalSprite, _floorTileIceSprite, _floorTileStaticSprite, _floorTilePortalSprite;
+        private Texture2D _floorTileSpringUpSprite, _floorTileSpringLeftSprite, _floorTileSpringDownSprite, _floorTileSpringRightSprite;
 
         private SpriteFont _digitFloor;
         private SpriteFont _debugGame;
@@ -52,7 +53,7 @@ namespace SlidingTile_MonoGame
         }
         protected override void Initialize()
         {
-            Window.Title = "Sliding Tile - MonoGame (0.4.1 - 2022.11.26)";
+            Window.Title = "Sliding Tile - MonoGame (0.4.2 - 2022.11.27)";
 
             //_timeSignleMoveMax = 0.3d;
             _stepDistans = 100.0f;
@@ -78,8 +79,11 @@ namespace SlidingTile_MonoGame
             _floorTileIceSprite = Content.Load<Texture2D>("sprites/floorTile_Ice");
             _floorTileStaticSprite = Content.Load<Texture2D>("sprites/florTile_Static");
             _floorTilePortalSprite = Content.Load<Texture2D>("sprites/florTile_Portal");
+            _floorTileSpringUpSprite = Content.Load<Texture2D>("sprites/floorTile_SpringUp");
+            _floorTileSpringLeftSprite = Content.Load<Texture2D>("sprites/floorTile_SpringLeft");
+            _floorTileSpringDownSprite = Content.Load<Texture2D>("sprites/floorTile_SpringDown");
+            _floorTileSpringRightSprite = Content.Load<Texture2D>("sprites/floorTile_SpringRight");
             _endGamePanelTexture2D = Content.Load<Texture2D>("sprites/endGamePanel");
-
             _endGamePanelPosition = new Vector2(
                 (_graphics.PreferredBackBufferWidth - _endGamePanelTexture2D.Width) / 2,
                 (_graphics.PreferredBackBufferHeight - _endGamePanelTexture2D.Height) / 2);
@@ -172,7 +176,7 @@ namespace SlidingTile_MonoGame
             _floorTiles = new List<FloorTile>();
             _currentFloorTile = new FloorTile();
             XmlDocument xmlDocument = new XmlDocument();
-            xmlDocument.Load("Levels/T_Variant/Test5TileType.xml");
+            xmlDocument.Load("Levels/T_Variant/Test4Springs.xml");
             string xmlString = xmlDocument.OuterXml;
             using (StringReader read = new StringReader(xmlString))
             {
@@ -215,6 +219,25 @@ namespace SlidingTile_MonoGame
                         break;
                     case FloorTileType.Portal:
                         tile = new Tile(_floorTilePortalSprite);
+                        break;
+                    case FloorTileType.Spring:
+                        switch (_floorTiles[i].Spring)
+                        {
+                            case SpringDirection.Up:
+                                tile = new Tile(_floorTileSpringUpSprite);
+                                break;
+                            case SpringDirection.Left:
+                                tile = new Tile(_floorTileSpringLeftSprite);
+                                break;
+                            case SpringDirection.Down:
+                                tile = new Tile(_floorTileSpringDownSprite);
+                                break;
+                            case SpringDirection.Right:
+                                tile = new Tile(_floorTileSpringRightSprite);
+                                break;
+                            default:
+                                break;
+                        }
                         break;
                     default:
                         break;

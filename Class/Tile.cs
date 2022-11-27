@@ -12,9 +12,11 @@ namespace SlidingTile_MonoGame.Class
         }
         public override void Draw(SpriteBatch spriteBatch)
         {
-            if (FloorTile.Type == FloorTileType.Normal && FloorTile.Number == 0) return;
-            if (FloorTile.Type == FloorTileType.Ice && FloorTile.Number == 0) return;
-            if (FloorTile.Type == FloorTileType.Portal && FloorTile.Number == 0) return;
+            if ((FloorTile.Type == FloorTileType.Normal ||
+                FloorTile.Type == FloorTileType.Ice ||
+                FloorTile.Type == FloorTileType.Portal ||
+                FloorTile.Type == FloorTileType.Spring) &&
+                FloorTile.Number == 0) return;
             base.Draw(spriteBatch);
             string textInside = string.Empty;
             Color colorText = new Color();
@@ -52,6 +54,12 @@ namespace SlidingTile_MonoGame.Class
                     textInside = FloorTile.Portal.ToString();
                     colorText = Color.Black;
                     vectorTextOffset = new Vector2(35, 15);
+                    break;
+                case FloorTileType.Spring:
+                    textInside = FloorTile.Number.ToString();
+                    colorText = Color.Black;
+                    vectorTextOffset = new Vector2(50, 15);
+                    break;
                     break;
                 default:
                     break;

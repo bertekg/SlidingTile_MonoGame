@@ -112,7 +112,8 @@ namespace SlidingTile_MonoGame.Class
                     PosY = _game1._floorTiles[i].PosY,
                     Number = _game1._floorTiles[i].Number,
                     Type = _game1._floorTiles[i].Type,
-                    Portal = _game1._floorTiles[i].Portal
+                    Portal = _game1._floorTiles[i].Portal,
+                    Spring = _game1._floorTiles[i].Spring
                 };
                 clonedList.Add(floorTile);
             };
@@ -160,6 +161,28 @@ namespace SlidingTile_MonoGame.Class
                                 floorTiles.Add(index2);
                                 clonedList[index2].Number--;
                                 duringSerching = false;
+                                break;
+                            case FloorTileType.Spring:
+                                floorTiles.Add(index);
+                                clonedList[index].Number--;
+                                pointForDetection = checkThisFloor;
+                                switch (clonedList[index].Spring)
+                                {
+                                    case SpringDirection.Up:
+                                        moveDir = new Point(0, 1);
+                                        break;
+                                    case SpringDirection.Left:
+                                        moveDir = new Point(-1, 0);
+                                        break;
+                                    case SpringDirection.Down:
+                                        moveDir = new Point(0, -1);
+                                        break;
+                                    case SpringDirection.Right:
+                                        moveDir = new Point(1, 0);
+                                        break;
+                                    default:
+                                        break;
+                                }
                                 break;
                             default:
                                 duringSerching = false;
